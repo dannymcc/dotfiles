@@ -144,3 +144,12 @@ export PS1="${nameC}\u${atC}@${hostC}\h:${pathC}\w${gitC}\$(gitPrompt)${pointerC
 if [ -f ~/.localrc ]; then 
   source ~/.localrc
 fi
+
+# Exit should detatch tmux now exit the session                                                                                                                                                                                                               
+exit() {                                                                                                                                                                                                                                                      
+    if [[ -z $TMUX ]]; then                                                                                                                                                                                                                                   
+        builtin exit                                                                                                                                                                                                                                          
+    else                                                                                                                                                                                                                                                      
+        tmux detach                                                                                                                                                                                                                                           
+    fi                                                                                                                                                                                                                                                        
+} 
