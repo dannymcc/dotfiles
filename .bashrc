@@ -152,4 +152,7 @@ exit() {
     else                                                                                                                                                                                                                                                      
         tmux detach                                                                                                                                                                                                                                           
     fi                                                                                                                                                                                                                                                        
-} 
+}
+
+alias sqlmap="python /home/danny/tools/sqlmapproject-sqlmap-c4ebc23/sqlmap.py "
+alias lazyrecon="bash /home/danny/tools/lazyrecon/lazyrecon.sh "
