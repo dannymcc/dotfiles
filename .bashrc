@@ -22,6 +22,7 @@ alias gpull="git pull origin master"
 alias :q="exit"
 alias norg="gron --ungron"
 alias ungron="gron --ungron"
+alias hn="haxor-news"
 
 # COLOURS! YAAAY!
 export TERM=xterm-256color
