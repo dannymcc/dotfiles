@@ -1,1 +1,1 @@
-TomNomNom dotfiles forked and tweaked
+Forked from TomNomNom dotfiles
