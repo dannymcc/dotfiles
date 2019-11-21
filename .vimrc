@@ -17,6 +17,7 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'TomNomNom/xoria256.vim'
 Plugin 'fatih/vim-go'
 Plugin 'rust-lang/rust.vim'
+set runtimepath^=~/.vim/bundle/ctrlp.vim
 
 call vundle#end()
 
