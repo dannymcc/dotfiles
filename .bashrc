@@ -162,3 +162,5 @@ alias lazyrecon="bash /home/danny/tools/lazyrecon/lazyrecon.sh "
 export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"
 export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"
+
+alias htbconnect="sudo openvpn --config ~/projects/hackthebox/connect.ovpn"
