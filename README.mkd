@@ -1,1 +1,13 @@
+## Dotfiles
+
+`sudo apt-get install vim-nox`
+
+### Useful Commands
+
+#### VIM
+
+`CTRL+O` Opens\Closes File Browser  
+`CTRL+P` Search for file  
+`CTRL+WW` Switch between file browser and VIM buffer
+
 Forked from TomNomNom dotfiles
