@@ -23,6 +23,10 @@ alias :q="exit"
 alias norg="gron --ungron"
 alias ungron="gron --ungron"
 alias hn="haxor-news"
+alias sqlmap="python /home/danny/tools/sqlmapproject-sqlmap-c4ebc23/sqlmap.py "
+alias lazyrecon="bash /home/danny/tools/lazyrecon/lazyrecon.sh "
+alias htb="cd ~/recon/htb && clear"
+alias htbconnect="sudo openvpn --config ~/projects/hackthebox/connect.ovpn"
 
 # COLOURS! YAAAY!
 export TERM=xterm-256color
@@ -166,4 +170,3 @@ export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"
 export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"
 
-alias htbconnect="sudo openvpn --config ~/projects/hackthebox/connect.ovpn"
