@@ -159,7 +159,7 @@ exit() {
 
 alias sqlmap="python /home/danny/tools/sqlmapproject-sqlmap-c4ebc23/sqlmap.py "
 alias lazyrecon="bash /home/danny/tools/lazyrecon/lazyrecon.sh "
-alias htb="cd ~/recon/htb %% clear"
+alias htb="cd ~/recon/htb && clear"
 
 
 export PATH="$HOME/.rbenv/bin:$PATH"
