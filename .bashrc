@@ -27,6 +27,7 @@ alias sqlmap="python /home/danny/tools/sqlmapproject-sqlmap-c4ebc23/sqlmap.py "
 alias lazyrecon="bash /home/danny/tools/lazyrecon/lazyrecon.sh "
 alias htb="cd ~/recon/htb && clear"
 alias htbconnect="sudo openvpn --config ~/projects/hackthebox/connect.ovpn"
+alias lockdoor="sudo lockdoor"
 
 # COLOURS! YAAAY!
 export TERM=xterm-256color
