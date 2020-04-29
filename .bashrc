@@ -28,6 +28,8 @@ alias lazyrecon="bash /home/danny/tools/lazyrecon/lazyrecon.sh "
 alias htb="cd ~/recon/htb && clear"
 alias htbconnect="sudo openvpn --config ~/projects/hackthebox/connect.ovpn"
 alias lockdoor="sudo lockdoor"
+alias dirsearch="sudo python3 /home/danny/pentest/INFO-GATH/Tools/dirsearch/dirsearch.py"
+alias projects="cd ~/projects && clear"
 
 # COLOURS! YAAAY!
 export TERM=xterm-256color
@@ -165,7 +167,7 @@ exit() {
 alias sqlmap="python /home/danny/tools/sqlmapproject-sqlmap-c4ebc23/sqlmap.py "
 alias lazyrecon="bash /home/danny/tools/lazyrecon/lazyrecon.sh "
 alias htb="cd ~/recon/htb && clear"
-
+alias fsociety="cd /home/danny/.fsociety && sudo fsociety"
 
 export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"
