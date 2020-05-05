@@ -30,6 +30,18 @@ alias htbconnect="sudo openvpn --config ~/projects/hackthebox/connect.ovpn"
 alias lockdoor="sudo lockdoor"
 alias dirsearch="sudo python3 /home/danny/pentest/INFO-GATH/Tools/dirsearch/dirsearch.py"
 alias projects="cd ~/projects && clear"
+alias diary="cd /home/danny/diary && ~/diary/diary.sh"
+alias weather="clear && curl http://wttr.in/Preston?m1 && sleep 5 && clear"
+alias bbc="cd /home/danny/projects/RandomScripts && ./bbc.sh"
+
+EDITOR=vim
+journal() {
+    mkdir -p ~/journal/`date +%Y`
+    $EDITOR ~/journal/`date +%Y`/`date +%d-%m.md`
+    (cd ~/journal/; git pull origin master; git add *; git commit -a -m "Update `date +%d-%m-%Y`"; git push origin master)
+}
+alias j=journal
+
 
 # COLOURS! YAAAY!
 export TERM=xterm-256color
