@@ -25,6 +25,11 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
 - **.claude/** - Claude Code configuration
   - `CLAUDE.md` - Global Claude Code preferences
 
+- **tmux/** - Tmux terminal multiplexer config
+  - Nord-themed status bar and panes
+  - Vim-style pane navigation (h/j/k/l)
+  - Split with `|` and `-`
+
 - **wallpapers/** - Theme wallpapers
   - `nord/` - 91 Nord-themed backgrounds from [ChrisTitusTech/nord-background](https://github.com/ChrisTitusTech/nord-background)
 

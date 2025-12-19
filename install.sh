@@ -75,6 +75,10 @@ backup_and_link "$SCRIPT_DIR/scripts/.local/share/omarchy/bin/omarchy-hyprland-w
 info "Installing claude config..."
 backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 
+# Tmux
+info "Installing tmux config..."
+backup_and_link "$SCRIPT_DIR/tmux/.config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
+
 # Nord wallpapers
 info "Installing nord wallpapers..."
 NORD_BG_DIR="$HOME/.local/share/omarchy/themes/nord/backgrounds"
