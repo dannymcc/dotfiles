@@ -24,9 +24,6 @@ alias gpull='git pull'
 alias gpush='git push'
 
 # Dotfiles sync functions
-unalias dotpush 2>/dev/null
-unalias dotpull 2>/dev/null
-
 function dotpush {
     (
         builtin cd ~/omarchy-config || exit 1
