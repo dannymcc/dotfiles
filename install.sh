@@ -75,9 +75,15 @@ backup_and_link "$SCRIPT_DIR/scripts/.local/share/omarchy/bin/omarchy-hyprland-w
 info "Installing claude config..."
 backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 
+# xremap (key remapper)
+info "Installing xremap config..."
+backup_and_link "$SCRIPT_DIR/xremap/.config/xremap/config.yml" "$HOME/.config/xremap/config.yml"
+backup_and_link "$SCRIPT_DIR/xremap/.config/systemd/user/xremap.service" "$HOME/.config/systemd/user/xremap.service"
+
 echo
 info "Installation complete!"
 echo
 echo "Note: You may need to:"
 echo "  - Restart your shell or run: source ~/.bashrc"
 echo "  - Reload hyprland: hyprctl reload"
+echo "  - Enable xremap: systemctl --user enable --now xremap"

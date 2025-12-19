@@ -1,0 +1,17 @@
+# xremap config for application-specific keybindings
+# See: https://github.com/xremap/xremap
+
+modmap:
+  - name: Global modmap
+    remap: {}
+
+keymap:
+  - name: Chromium navigation
+    application:
+      only:
+        - chromium
+        - Chromium
+        - chromium-browser
+    remap:
+      C-bracketleft: Alt_L-Left    # Back
+      C-bracketright: Alt_L-Right  # Forward
