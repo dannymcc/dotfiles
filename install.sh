@@ -17,6 +17,16 @@ info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
+install_package() {
+    local pkg="$1"
+    if pacman -Qi "$pkg" &>/dev/null; then
+        info "Already installed: $pkg"
+    else
+        info "Installing: $pkg"
+        yay -S --noconfirm "$pkg"
+    fi
+}
+
 backup_and_link() {
     local src="$1"
     local dest="$2"
@@ -52,6 +62,12 @@ backup_and_link() {
 echo "================================"
 echo "  Omarchy Config Installer"
 echo "================================"
+echo
+
+# Packages
+info "Checking packages..."
+install_package "xremap-hypr-bin"
+
 echo
 
 # Bash
