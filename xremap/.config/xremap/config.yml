@@ -13,5 +13,5 @@ keymap:
         - Chromium
         - chromium-browser
     remap:
-      Super_L-bracketleft: Alt_L-Left    # Back
-      Super_L-bracketright: Alt_L-Right  # Forward
+      Super_L-LeftBrace: Alt_L-Left    # Back
+      Super_L-RightBrace: Alt_L-Right  # Forward
