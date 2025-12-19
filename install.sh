@@ -75,6 +75,17 @@ backup_and_link "$SCRIPT_DIR/scripts/.local/share/omarchy/bin/omarchy-hyprland-w
 info "Installing claude config..."
 backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 
+# Nord wallpapers
+info "Installing nord wallpapers..."
+NORD_BG_DIR="$HOME/.local/share/omarchy/themes/nord/backgrounds"
+if [[ -d "$NORD_BG_DIR" ]]; then
+    for img in "$SCRIPT_DIR/wallpapers/nord"/*.{png,jpg,jpeg}; do
+        [[ -f "$img" ]] && backup_and_link "$img" "$NORD_BG_DIR/$(basename "$img")"
+    done
+else
+    warn "Nord theme not found, skipping wallpapers"
+fi
+
 echo
 info "Installation complete!"
 echo

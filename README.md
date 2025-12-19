@@ -25,6 +25,9 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
 - **.claude/** - Claude Code configuration
   - `CLAUDE.md` - Global Claude Code preferences
 
+- **wallpapers/** - Theme wallpapers
+  - `nord/` - 91 Nord-themed backgrounds from [ChrisTitusTech/nord-background](https://github.com/ChrisTitusTech/nord-background)
+
 ## Custom Keybindings
 
 | Keybind | Action |
