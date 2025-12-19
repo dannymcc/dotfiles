@@ -71,6 +71,10 @@ backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/input.conf" "$HOME/.config/hypr/i
 info "Installing custom scripts..."
 backup_and_link "$SCRIPT_DIR/scripts/.local/share/omarchy/bin/omarchy-hyprland-window-center" "$HOME/.local/share/omarchy/bin/omarchy-hyprland-window-center"
 
+# Claude Code
+info "Installing claude config..."
+backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+
 echo
 info "Installation complete!"
 echo
