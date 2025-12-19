@@ -30,6 +30,9 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
   - Vim-style pane navigation (h/j/k/l)
   - Split with `|` and `-`
 
+- **applications/** - Web app shortcuts
+  - ChatGPT, Discord, GitHub, WhatsApp, X, YouTube, Zoom
+
 - **wallpapers/** - Theme wallpapers
   - `nord/` - 91 Nord-themed backgrounds from [ChrisTitusTech/nord-background](https://github.com/ChrisTitusTech/nord-background)
 

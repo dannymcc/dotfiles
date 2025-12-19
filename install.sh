@@ -79,6 +79,21 @@ backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 info "Installing tmux config..."
 backup_and_link "$SCRIPT_DIR/tmux/.config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
 
+# Web apps
+info "Installing web apps..."
+APPS_SRC="$SCRIPT_DIR/applications/.local/share/applications"
+APPS_DEST="$HOME/.local/share/applications"
+mkdir -p "$APPS_DEST/icons"
+for desktop in "$APPS_SRC"/*.desktop; do
+    [[ -f "$desktop" ]] || continue
+    name=$(basename "$desktop")
+    # Copy and fix paths for this system
+    sed "s|/home/[^/]*/|$HOME/|g" "$desktop" > "$APPS_DEST/$name"
+    info "Installed web app: $name"
+done
+# Copy icons
+cp -n "$APPS_SRC/icons/"*.png "$APPS_DEST/icons/" 2>/dev/null || true
+
 # Nord wallpapers
 info "Installing nord wallpapers..."
 NORD_BG_DIR="$HOME/.local/share/omarchy/themes/nord/backgrounds"
