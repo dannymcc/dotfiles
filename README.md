@@ -5,6 +5,7 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
 ## Contents
 
 - **bash/** - Shell aliases and configuration
+  - `dotpush`, `dotpull` - Sync dotfiles with GitHub
   - `gpull`, `gpush` - Git shortcuts
   - `projects` - Quick cd to projects directory
   - `nano` aliased to `nvim`
@@ -20,6 +21,9 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
 
 - **scripts/** - Custom Omarchy scripts
   - `omarchy-hyprland-window-center` - Center window at specified percentage of screen
+
+- **.claude/** - Claude Code configuration
+  - `CLAUDE.md` - Global Claude Code preferences
 
 ## Custom Keybindings
 
@@ -46,20 +50,13 @@ source ~/.bashrc
 hyprctl reload
 ```
 
-## Updating
+## Usage
 
-After making changes locally, commit and push:
-```bash
-cd ~/omarchy-config
-git add -A
-git commit -m "Update config"
-git push
-```
+| Scenario | Command |
+|----------|---------|
+| Fresh install | `./install.sh` |
+| Update symlinks | `./install.sh` |
+| Push local changes to GitHub | `dotpush` |
+| Pull changes from GitHub | `dotpull` |
 
-On other machines, pull the latest:
-```bash
-cd ~/omarchy-config
-git pull
-```
-
-Symlinks mean changes are automatically reflected - no need to re-run install.
+Symlinks mean changes are automatically reflected - no need to re-run install after pulling.

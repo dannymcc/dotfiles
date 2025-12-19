@@ -23,5 +23,6 @@ alias nano='nvim'
 alias gpull='git pull'
 alias gpush='git push'
 alias dotpush='cd ~/omarchy-config && git add -A && git commit -m "Update dotfiles" && git push; cd - > /dev/null'
+alias dotpull='cd ~/omarchy-config && git pull; cd - > /dev/null'
 
 . "$HOME/.local/share/../bin/env"
