@@ -22,7 +22,31 @@ alias nano='nvim'
 # Git aliases
 alias gpull='git pull'
 alias gpush='git push'
-alias dotpush='cd ~/omarchy-config && git add -A && git commit -m "Update dotfiles" && git push; cd - > /dev/null'
-alias dotpull='cd ~/omarchy-config && git pull; cd - > /dev/null'
+
+# Dotfiles sync functions
+dotpush() {
+    cd ~/omarchy-config || return 1
+    if [[ -z $(git status --porcelain) ]]; then
+        echo "Dotfiles already in sync"
+    else
+        local changed=$(git status --porcelain | wc -l)
+        git add -A && git commit -m "Update dotfiles" > /dev/null && git push -q
+        echo "Pushed $changed file(s) to GitHub"
+    fi
+    cd - > /dev/null
+}
+
+dotpull() {
+    cd ~/omarchy-config || return 1
+    git fetch -q
+    local behind=$(git rev-list HEAD..@{u} --count 2>/dev/null)
+    if [[ "$behind" -eq 0 ]]; then
+        echo "Dotfiles already in sync"
+    else
+        git pull -q
+        echo "Pulled $behind commit(s) from GitHub"
+    fi
+    cd - > /dev/null
+}
 
 . "$HOME/.local/share/../bin/env"
