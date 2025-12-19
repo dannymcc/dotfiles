@@ -26,7 +26,7 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
   - `CLAUDE.md` - Global Claude Code preferences
 
 - **xremap/** - Key remapper for app-specific keybindings
-  - Chromium: Ctrl+[ for back, Ctrl+] for forward
+  - Chromium: Super+[ for back, Super+] for forward
 
 ## Custom Keybindings
 
@@ -38,8 +38,8 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
 
 | Keybind | Action |
 |---------|--------|
-| Ctrl + [ | Navigate back |
-| Ctrl + ] | Navigate forward |
+| Super + [ | Navigate back |
+| Super + ] | Navigate forward |
 
 ## Installation
 
