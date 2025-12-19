@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Center the current window and resize to a percentage of the monitor dimensions.
+#
+# Usage:
+# omarchy-hyprland-window-center [percentage]
+#
+# Arguments:
+#   percentage  Optional. Percentage of monitor size (default: 70)
+
+percentage=${1:-70}
+
+# Get active window info
+active=$(hyprctl activewindow -j)
+addr=$(echo "$active" | jq -r ".address")
+
+if [[ -z "$addr" || "$addr" == "null" ]]; then
+  exit 0
+fi
+
+# Get the monitor the window is on
+monitor_id=$(echo "$active" | jq -r ".monitor")
+monitor=$(hyprctl monitors -j | jq ".[] | select(.id == $monitor_id)")
+
+# Calculate target dimensions using jq (handles floats properly)
+target_width=$(echo "$monitor" | jq "(((.width / .scale) - .reserved[0] - .reserved[2]) * $percentage / 100) | floor")
+target_height=$(echo "$monitor" | jq "(((.height / .scale) - .reserved[1] - .reserved[3]) * $percentage / 100) | floor")
+
+# Ensure the window is floating, resize it, and center it
+floating=$(echo "$active" | jq ".floating")
+if [[ "$floating" != "true" ]]; then
+  hyprctl dispatch togglefloating address:$addr
+fi
+
+hyprctl dispatch resizeactive exact $target_width $target_height
+hyprctl dispatch centerwindow
