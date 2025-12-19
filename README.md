@@ -31,7 +31,7 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
   - Split with `|` and `-`
 
 - **applications/** - Web app shortcuts
-  - ChatGPT, Discord, GitHub, WhatsApp, X, YouTube, Zoom
+  - ChatGPT, Discord, GitHub, YouTube
 
 - **wallpapers/** - Theme wallpapers
   - `nord/` - 91 Nord-themed backgrounds from [ChrisTitusTech/nord-background](https://github.com/ChrisTitusTech/nord-background)
