@@ -17,16 +17,6 @@ info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-install_package() {
-    local pkg="$1"
-    if pacman -Qi "$pkg" &>/dev/null; then
-        info "Already installed: $pkg"
-    else
-        info "Installing: $pkg"
-        yay -S --noconfirm "$pkg"
-    fi
-}
-
 backup_and_link() {
     local src="$1"
     local dest="$2"
@@ -64,12 +54,6 @@ echo "  Omarchy Config Installer"
 echo "================================"
 echo
 
-# Packages
-info "Checking packages..."
-install_package "xremap-hypr-bin"
-
-echo
-
 # Bash
 info "Installing bash config..."
 backup_and_link "$SCRIPT_DIR/bash/.bashrc" "$HOME/.bashrc"
@@ -91,15 +75,9 @@ backup_and_link "$SCRIPT_DIR/scripts/.local/share/omarchy/bin/omarchy-hyprland-w
 info "Installing claude config..."
 backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 
-# xremap (key remapper)
-info "Installing xremap config..."
-backup_and_link "$SCRIPT_DIR/xremap/.config/xremap/config.yml" "$HOME/.config/xremap/config.yml"
-backup_and_link "$SCRIPT_DIR/xremap/.config/systemd/user/xremap.service" "$HOME/.config/systemd/user/xremap.service"
-
 echo
 info "Installation complete!"
 echo
 echo "Note: You may need to:"
 echo "  - Restart your shell or run: source ~/.bashrc"
 echo "  - Reload hyprland: hyprctl reload"
-echo "  - Enable xremap: systemctl --user enable --now xremap"
