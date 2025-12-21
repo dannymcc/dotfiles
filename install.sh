@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry python-rich python-requests python-textual"
+PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -148,3 +148,4 @@ echo "Note: You may need to:"
 echo "  - Restart your shell or run: source ~/.bashrc"
 echo "  - Reload hyprland: hyprctl reload"
 echo "  - Restart elephant: systemctl --user restart elephant"
+echo "  - Configure HiBob credentials: nano ~/.config/hibob/credentials"
