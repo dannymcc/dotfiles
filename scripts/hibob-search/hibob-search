@@ -164,10 +164,19 @@ class HiBobApp(App):
 
     Screen {
         layout: grid;
-        grid-size: 2 3;
+        grid-size: 2 4;
         grid-columns: 1fr 2fr;
-        grid-rows: auto 1fr auto;
+        grid-rows: auto auto 1fr auto;
         background: #1a1a1a;
+    }
+    #header {
+        column-span: 2;
+        height: auto;
+        padding: 1 2;
+        background: $hibob-red;
+    }
+    #header-content {
+        width: 100%;
     }
     #search {
         column-span: 2;
@@ -233,6 +242,10 @@ class HiBobApp(App):
         self.current = None
 
     def compose(self):
+        yield Container(
+            Static("[white on #E8164F] Hi [/white on #E8164F] [bold white]HiBob Employee Search[/bold white]", id="header-content"),
+            id="header"
+        )
         yield Container(Input(placeholder="Search...", id="search-input"), id="search")
         yield Container(EmpList(id="emp-list"), id="list-box")
         yield Container(
