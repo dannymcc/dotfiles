@@ -126,11 +126,13 @@ def find_reports(emp, all_emps):
 
 def copy_to_clipboard(text):
     try:
-        subprocess.run(["wl-copy", text], check=True, capture_output=True)
+        subprocess.Popen(["wl-copy", "--", text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return True
     except:
         try:
-            subprocess.run(["xclip", "-selection", "clipboard"], input=text.encode(), check=True)
+            p = subprocess.Popen(["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            p.communicate(text.encode())
             return True
         except:
             return False
@@ -152,20 +154,50 @@ class EmpItem(ListItem):
 
 
 class HiBobApp(App):
+    TITLE = "HiBob"
     CSS = """
-    Screen { layout: grid; grid-size: 2 3; grid-columns: 2fr 3fr; grid-rows: auto 1fr auto; }
-    #search { column-span: 2; padding: 1; }
-    #search-input { width: 100%; }
-    #list-box { border: solid $primary; }
-    #emp-list { height: 100%; }
-    #detail-box { border: solid $secondary; padding: 1; }
+    Screen {
+        layout: grid;
+        grid-size: 2 3;
+        grid-columns: 1fr 2fr;
+        grid-rows: auto 1fr auto;
+    }
+    #search {
+        column-span: 2;
+        padding: 1 2;
+        background: $surface;
+    }
+    #search-input {
+        width: 100%;
+        border: tall $primary;
+    }
+    #list-box {
+        border: round $primary;
+        margin: 0 1 0 1;
+    }
+    #emp-list { height: 100%; scrollbar-gutter: stable; }
+    #detail-box {
+        border: round $secondary;
+        margin: 0 1 0 0;
+        padding: 1 2;
+    }
     #detail { height: auto; }
-    #reports-title { padding: 1 0 0 0; }
-    #reports { height: 1fr; }
-    #status { column-span: 2; padding: 0 1; background: $surface; }
-    EmpItem { padding: 0 1; }
-    EmpItem:hover { background: $boost; }
-    EmpItem.-active { background: $accent; }
+    #reports-title {
+        padding: 1 0 0 0;
+        text-style: bold;
+        color: $text-muted;
+    }
+    #reports { height: 1fr; scrollbar-gutter: stable; }
+    #status {
+        column-span: 2;
+        padding: 0 2;
+        background: $surface;
+        color: $text-muted;
+    }
+    EmpItem { padding: 0 1; height: auto; }
+    EmpItem:hover { background: $primary 20%; }
+    EmpItem.-active { background: $primary 40%; }
+    EmpItem:focus { background: $primary 40%; }
     """
 
     BINDINGS = [
@@ -271,15 +303,15 @@ class HiBobApp(App):
         tenure = calc_tenure(get_field(e, "work.startDate") or get_field(e, "startDate") or "")
         _, mgr_name = find_manager(e, self.all_emps)
 
-        lines = [f"[bold cyan]{name}[/bold cyan]", ""]
+        lines = [f"[bold]{name}[/bold]", ""]
         if email:
-            lines.append(f"[bold]Email[/bold]     {email}")
+            lines.append(f"[dim]Email[/dim]     [cyan]{email}[/cyan]")
         if title:
-            lines.append(f"[bold]Title[/bold]     {title}")
+            lines.append(f"[dim]Title[/dim]     {title}")
         if dept:
-            lines.append(f"[bold]Dept[/bold]      {dept}")
-        lines.append(f"[bold]Tenure[/bold]    {tenure}")
-        lines.append(f"[bold]Manager[/bold]   {mgr_name or '[dim]None[/dim]'}")
+            lines.append(f"[dim]Dept[/dim]      {dept}")
+        lines.append(f"[dim]Tenure[/dim]    {tenure}")
+        lines.append(f"[dim]Manager[/dim]   {mgr_name or 'None'}")
         detail.update("\n".join(lines))
 
     def on_input_changed(self, event):
@@ -289,7 +321,14 @@ class HiBobApp(App):
         self.update_status()
 
     def on_input_submitted(self, event):
-        self.query_one("#emp-list", EmpList).focus()
+        emp_list = self.query_one("#emp-list", EmpList)
+        emp_list.focus()
+        # Auto-select first item
+        if emp_list.children:
+            emp_list.index = 0
+            first = emp_list.children[0]
+            if isinstance(first, EmpItem):
+                self.show_employee(first.emp)
 
     def on_list_view_highlighted(self, event):
         if isinstance(event.item, EmpItem) and event.list_view.id == "emp-list":
