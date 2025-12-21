@@ -233,7 +233,8 @@ class HiBobApp(App):
         Binding("tab", "switch", "Switch"),
         Binding("backspace", "back", "Back"),
         Binding("m", "manager", "Manager"),
-        Binding("c", "copy", "Copy Email"),
+        Binding("c", "copy_email", "Copy Email"),
+        Binding("n", "copy_name", "Copy Name"),
         Binding("ctrl+c", "quit", show=False),
     ]
 
@@ -289,7 +290,7 @@ class HiBobApp(App):
         q = self.query_one("#search-input", SearchInput).value.strip()
         n = len(self.filtered) if q else len(self.all_emps)
         label = "matches" if q else "employees"
-        hints = "/ Search  Tab Switch  m Manager  c Copy"
+        hints = "/ Search  Tab Switch  m Manager  c Email  n Name"
         if self.history:
             hints += "  ⌫ Back"
         self.query_one("#status", Static).update(f"[green]{n} {label}[/green] │ [dim]{hints}  q Quit[/dim]")
@@ -391,11 +392,17 @@ class HiBobApp(App):
             if mgr:
                 self.show_employee(mgr)
 
-    def action_copy(self):
+    def action_copy_email(self):
         if self.current:
             email = get_field(self.current, "email")
             if email and copy_to_clipboard(email):
                 self.query_one("#status", Static).update(f"[green]Copied:[/green] {email}")
+
+    def action_copy_name(self):
+        if self.current:
+            name = get_field(self.current, "displayName")
+            if name and copy_to_clipboard(name):
+                self.query_one("#status", Static).update(f"[green]Copied:[/green] {name}")
 
 
 def main():
