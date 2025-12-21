@@ -2,52 +2,6 @@
 
 Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
 
-## Contents
-
-- **bash/** - Shell aliases and configuration
-  - `dotpush`, `dotpull` - Sync dotfiles with GitHub
-  - `gpull`, `gpush` - Git shortcuts
-  - `projects` - Quick cd to projects directory
-  - `nano` aliased to `nvim`
-
-- **git/** - Git configuration
-  - User name and email
-  - Useful aliases (co, br, ci, st)
-  - Sensible defaults (rebase on pull, auto-setup remote, etc.)
-
-- **hypr/** - Hyprland window manager config
-  - `bindings.conf` - Custom keybindings
-  - `input.conf` - Caps Lock as Hyper modifier (MOD3)
-
-- **scripts/** - Custom Omarchy scripts
-  - `omarchy-hyprland-window-center` - Center window at specified percentage of screen
-
-- **.claude/** - Claude Code configuration
-  - `CLAUDE.md` - Global Claude Code preferences
-
-- **tmux/** - Tmux terminal multiplexer config
-  - Nord-themed status bar and panes
-  - Vim-style pane navigation (h/j/k/l)
-  - Split with `|` and `-`
-
-- **waybar/** - Waybar status bar config
-  - Floating bar style with rounded corners
-  - Based on [Adsovetzky's Waybar](https://github.com/cazador11/Adsovetzky-Omarchy-s-Waybar/tree/main/waybar-1.3c.2)
-  - Modules: workspaces, clock, mpris, network, bluetooth, audio, battery
-  - Requires: `blueberry`
-
-- **applications/** - Web app shortcuts
-  - ChatGPT, Discord, GitHub, YouTube
-
-- **wallpapers/** - Theme wallpapers
-  - `nord/` - 91 Nord-themed backgrounds from [ChrisTitusTech/nord-background](https://github.com/ChrisTitusTech/nord-background)
-
-## Custom Keybindings
-
-| Keybind | Action |
-|---------|--------|
-| Caps Lock + C | Center window at 60% of screen |
-
 ## Installation
 
 ```bash
@@ -57,15 +11,83 @@ cd ~/omarchy-config
 ```
 
 The install script will:
-1. Back up any existing files (with timestamp)
+1. Back up any existing files with a timestamp
 2. Create symlinks from the repo to the correct locations
-3. Preserve the repo as the source of truth
+3. Install any required packages via `yay`
 
-After installation, reload your environment:
+After installation:
 ```bash
 source ~/.bashrc
 hyprctl reload
+systemctl --user restart elephant
 ```
+
+## Contents
+
+### Shell
+
+**bash/** - Shell aliases and configuration
+- `dotpush`, `dotpull` - Sync dotfiles with GitHub
+- `gpull`, `gpush` - Git shortcuts
+- `projects` - Quick cd to projects directory
+- `nano` aliased to `nvim`
+
+### Git
+
+**git/** - Git configuration
+- User name and email
+- Useful aliases (`co`, `br`, `ci`, `st`)
+- Sensible defaults (rebase on pull, auto-setup remote)
+
+### Hyprland
+
+**hypr/** - Hyprland window manager config
+- `bindings.conf` - Custom keybindings
+- `input.conf` - Caps Lock as Hyper modifier (MOD3)
+
+**scripts/** - Custom Omarchy scripts
+- `omarchy-hyprland-window-center` - Center window at specified percentage of screen
+
+### Terminal
+
+**tmux/** - Tmux terminal multiplexer config
+- Nord-themed status bar and panes
+- Vim-style pane navigation (`h`/`j`/`k`/`l`)
+- Split with `|` and `-`
+
+### Status Bar
+
+**waybar/** - Waybar status bar config
+- Floating bar style with rounded corners
+- Based on [Adsovetzky's Waybar](https://github.com/cazador11/Adsovetzky-Omarchy-s-Waybar)
+- Modules: workspaces, clock, mpris, network, bluetooth, audio, battery
+- Requires: `blueberry`
+
+### Walker
+
+**elephant/** - Walker launcher websearch configuration
+- `pv <id>` - Open Provet Cloud environment by ID
+
+### Applications
+
+**applications/** - Web app shortcuts
+- ChatGPT, Discord, GitHub, YouTube
+
+### Wallpapers
+
+**wallpapers/** - Theme wallpapers
+- `nord/` - 91 Nord-themed backgrounds from [ChrisTitusTech/nord-background](https://github.com/ChrisTitusTech/nord-background)
+
+### Claude Code
+
+**.claude/** - Claude Code configuration
+- `CLAUDE.md` - Global Claude Code preferences
+
+## Custom Keybindings
+
+| Keybind | Action |
+|---------|--------|
+| Caps Lock + C | Center window at 60% of screen |
 
 ## Usage
 
@@ -76,4 +98,4 @@ hyprctl reload
 | Push local changes to GitHub | `dotpush` |
 | Pull changes from GitHub | `dotpull` |
 
-Symlinks mean changes are automatically reflected - no need to re-run install after pulling.
+Symlinks mean changes are automatically reflected—no need to re-run install after pulling.
