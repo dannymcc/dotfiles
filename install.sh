@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry"
+PACKAGES="blueberry python-rich python-requests"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -118,6 +118,17 @@ for desktop in "$APPS_SRC"/*.desktop; do
 done
 # Copy icons
 cp -n "$APPS_SRC/icons/"*.png "$APPS_DEST/icons/" 2>/dev/null || true
+
+# HiBob Search
+info "Installing hibob-search..."
+mkdir -p "$HOME/.local/bin"
+backup_and_link "$SCRIPT_DIR/scripts/hibob-search/hibob-search" "$HOME/.local/bin/hibob-search"
+if [[ ! -f "$HOME/.config/hibob/credentials" ]]; then
+    mkdir -p "$HOME/.config/hibob"
+    cp "$SCRIPT_DIR/scripts/hibob-search/credentials.example" "$HOME/.config/hibob/credentials"
+    chmod 600 "$HOME/.config/hibob/credentials"
+    warn "Created ~/.config/hibob/credentials - please add your API credentials"
+fi
 
 # Nord wallpapers
 info "Installing nord wallpapers..."

@@ -1,0 +1,330 @@
+#!/usr/bin/env python3
+"""
+HiBob Employee Search TUI
+
+Search for employees and display their details including:
+- Name and email
+- Tenure with the company
+- Manager (reports to)
+- Direct reports
+"""
+
+import sys
+import os
+import json
+import requests
+from datetime import datetime
+from pathlib import Path
+
+try:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.panel import Panel
+    from rich.text import Text
+    from rich import box
+except ImportError:
+    print("Error: 'rich' library not installed. Run: pip install rich")
+    sys.exit(1)
+
+CONFIG_PATH = Path.home() / ".config" / "hibob" / "credentials"
+API_BASE = "https://api.hibob.com/v1"
+
+console = Console()
+
+
+def load_credentials():
+    """Load API credentials from config file."""
+    if not CONFIG_PATH.exists():
+        console.print(f"[red]Error:[/red] Credentials file not found at {CONFIG_PATH}")
+        console.print("\nCreate the file with:")
+        console.print(f"  mkdir -p ~/.config/hibob")
+        console.print(f"  cat > ~/.config/hibob/credentials << 'EOF'")
+        console.print("  HIBOB_SERVICE_USER_ID=your_service_user_id")
+        console.print("  HIBOB_SERVICE_USER_TOKEN=your_service_user_token")
+        console.print("  EOF")
+        console.print(f"  chmod 600 ~/.config/hibob/credentials")
+        sys.exit(1)
+
+    creds = {}
+    with open(CONFIG_PATH) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                creds[key.strip()] = value.strip()
+
+    user_id = creds.get("HIBOB_SERVICE_USER_ID")
+    token = creds.get("HIBOB_SERVICE_USER_TOKEN")
+
+    if not user_id or not token:
+        console.print("[red]Error:[/red] Missing HIBOB_SERVICE_USER_ID or HIBOB_SERVICE_USER_TOKEN in credentials")
+        sys.exit(1)
+
+    return user_id, token
+
+
+def fetch_named_list(user_id, token, list_name):
+    """Fetch a named list from HiBob and return ID->name mapping."""
+    url = f"{API_BASE}/company/named-lists/{list_name}"
+
+    response = requests.get(url, auth=(user_id, token))
+
+    if response.status_code != 200:
+        return {}
+
+    data = response.json()
+    return {str(item.get("id")): item.get("name", "") for item in data.get("values", [])}
+
+
+def fetch_all_employees(user_id, token):
+    """Fetch all employees from HiBob."""
+    url = f"{API_BASE}/people/search"
+
+    payload = {
+        "fields": [
+            "root.id",
+            "root.displayName",
+            "root.email",
+            "work.startDate",
+            "work.reportsTo",
+            "work.title",
+            "work.department"
+        ]
+    }
+
+    response = requests.post(
+        url,
+        json=payload,
+        auth=(user_id, token),
+        headers={"Content-Type": "application/json"}
+    )
+
+    if response.status_code == 401:
+        console.print("[red]Error:[/red] Authentication failed. Check your credentials.")
+        sys.exit(1)
+
+    if response.status_code != 200:
+        console.print(f"[red]Error:[/red] API returned {response.status_code}")
+        console.print(response.text)
+        sys.exit(1)
+
+    return response.json().get("employees", [])
+
+
+def search_employees(all_employees, query):
+    """Filter employees by name (case-insensitive)."""
+    query_lower = query.lower()
+    matches = []
+
+    for emp in all_employees:
+        # Handle both nested and flat response formats
+        name = emp.get("displayName", "") or emp.get("root", {}).get("displayName", "")
+        email = emp.get("email", "") or emp.get("root", {}).get("email", "")
+
+        if query_lower in name.lower() or query_lower in email.lower():
+            matches.append(emp)
+
+    return matches
+
+
+def calculate_tenure(start_date_str):
+    """Calculate tenure from start date."""
+    if not start_date_str:
+        return "Unknown"
+
+    try:
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+        today = datetime.now()
+        delta = today - start_date
+
+        years = delta.days // 365
+        months = (delta.days % 365) // 30
+
+        if years > 0:
+            if months > 0:
+                return f"{years}y {months}m"
+            return f"{years}y"
+        elif months > 0:
+            return f"{months}m"
+        else:
+            return f"{delta.days}d"
+    except ValueError:
+        return "Unknown"
+
+
+def get_field(employee, field):
+    """Get a field value handling both flat and nested response formats."""
+    # Try flat format first (e.g., "displayName", "email")
+    if field in employee:
+        val = employee[field]
+        # Handle dict values with "value" key
+        if isinstance(val, dict):
+            return val.get("value", "")
+        return val
+
+    # Try nested format (e.g., root.displayName -> employee["root"]["displayName"])
+    parts = field.split(".")
+    obj = employee
+    for part in parts:
+        if isinstance(obj, dict):
+            obj = obj.get(part, {})
+        else:
+            return ""
+    if isinstance(obj, dict):
+        return obj.get("value", "")
+    return obj if obj else ""
+
+
+def find_manager(employee, all_employees):
+    """Find the manager's name for an employee."""
+    # Try to get reportsTo - it might be nested in work or at top level
+    reports_to = employee.get("work", {}).get("reportsTo") or employee.get("reportsTo")
+
+    # Handle /work/reportsTo format with value wrapper
+    if not reports_to:
+        wrapped = employee.get("/work/reportsTo", {})
+        if isinstance(wrapped, dict):
+            reports_to = wrapped.get("value")
+
+    if not reports_to:
+        return None
+
+    # reportsTo might be an object with displayName, or just an ID/email
+    if isinstance(reports_to, dict):
+        return reports_to.get("displayName") or reports_to.get("email") or str(reports_to)
+
+    # Otherwise it's an ID or email - look it up
+    for emp in all_employees:
+        emp_id = emp.get("id", "")
+        emp_email = get_field(emp, "email")
+        if reports_to == emp_id or reports_to == emp_email:
+            return get_field(emp, "displayName") or reports_to
+
+    return reports_to  # Return raw value if not found
+
+
+def find_direct_reports(employee, all_employees):
+    """Find direct reports for an employee."""
+    emp_id = employee.get("id", "")
+    emp_email = get_field(employee, "email")
+
+    reports = []
+    for emp in all_employees:
+        # Get reportsTo - might be object or ID/email
+        reports_to = emp.get("work", {}).get("reportsTo") or emp.get("reportsTo")
+
+        # Handle /work/reportsTo format
+        if not reports_to:
+            wrapped = emp.get("/work/reportsTo", {})
+            if isinstance(wrapped, dict):
+                reports_to = wrapped.get("value")
+
+        if not reports_to:
+            continue
+
+        # Check if this employee reports to us
+        if isinstance(reports_to, dict):
+            manager_id = reports_to.get("id", "")
+            manager_email = reports_to.get("email", "")
+            if manager_id == emp_id or manager_email == emp_email:
+                name = get_field(emp, "displayName") or "Unknown"
+                reports.append(name)
+        elif reports_to == emp_id or reports_to == emp_email:
+            name = get_field(emp, "displayName") or "Unknown"
+            reports.append(name)
+
+    return sorted(reports)
+
+
+def display_employee(employee, all_employees, lists=None):
+    """Display employee details in a nice panel."""
+    lists = lists or {}
+
+    name = get_field(employee, "displayName") or "Unknown"
+    email = get_field(employee, "email") or "Unknown"
+
+    # Get title and department, resolving IDs to names
+    title_raw = get_field(employee, "work.title") or get_field(employee, "title") or ""
+    department_raw = get_field(employee, "work.department") or get_field(employee, "department") or ""
+
+    title = lists.get("title", {}).get(str(title_raw), title_raw) if title_raw else ""
+    department = lists.get("department", {}).get(str(department_raw), department_raw) if department_raw else ""
+
+    start_date = get_field(employee, "work.startDate") or get_field(employee, "startDate") or ""
+    tenure = calculate_tenure(start_date)
+
+    manager = find_manager(employee, all_employees)
+    direct_reports = find_direct_reports(employee, all_employees)
+
+    # Build content
+    lines = []
+    lines.append(f"[bold cyan]Email:[/bold cyan] {email}")
+
+    if title:
+        lines.append(f"[bold cyan]Title:[/bold cyan] {title}")
+
+    if department:
+        lines.append(f"[bold cyan]Department:[/bold cyan] {department}")
+
+    lines.append(f"[bold cyan]Tenure:[/bold cyan] {tenure}")
+
+    if manager:
+        lines.append(f"[bold cyan]Reports to:[/bold cyan] {manager}")
+    else:
+        lines.append(f"[bold cyan]Reports to:[/bold cyan] [dim]None (top level)[/dim]")
+
+    if direct_reports:
+        lines.append(f"[bold cyan]Direct reports:[/bold cyan] ({len(direct_reports)})")
+        for report in direct_reports:
+            lines.append(f"  [dim]•[/dim] {report}")
+    else:
+        lines.append(f"[bold cyan]Direct reports:[/bold cyan] [dim]None[/dim]")
+
+    content = "\n".join(lines)
+
+    console.print(Panel(
+        content,
+        title=f"[bold white]{name}[/bold white]",
+        box=box.ROUNDED,
+        padding=(1, 2)
+    ))
+
+
+def main():
+    # Get search query
+    if len(sys.argv) > 1:
+        query = " ".join(sys.argv[1:])
+    else:
+        console.print("[bold]HiBob Employee Search[/bold]\n")
+        query = console.input("[cyan]Search:[/cyan] ").strip()
+        if not query:
+            console.print("[yellow]No search term provided[/yellow]")
+            sys.exit(0)
+
+    # Load credentials
+    user_id, token = load_credentials()
+
+    # Fetch all employees and search
+    with console.status(f"[cyan]Searching for '{query}'...[/cyan]"):
+        all_employees = fetch_all_employees(user_id, token)
+        employees = search_employees(all_employees, query)
+
+        # Fetch named lists for resolving IDs
+        lists = {
+            "title": fetch_named_list(user_id, token, "title"),
+            "department": fetch_named_list(user_id, token, "department"),
+        }
+
+    if not employees:
+        console.print(f"\n[yellow]No employees found matching '{query}'[/yellow]")
+        sys.exit(0)
+
+    console.print(f"\n[green]Found {len(employees)} employee(s)[/green]\n")
+
+    for employee in employees:
+        display_employee(employee, all_employees, lists)
+        console.print()
+
+
+if __name__ == "__main__":
+    main()

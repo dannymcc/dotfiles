@@ -68,6 +68,18 @@ systemctl --user restart elephant
 **elephant/** - Walker launcher websearch configuration
 - `pv <id>` - Open Provet Cloud environment by ID
 
+### HiBob Search
+
+**scripts/hibob-search/** - Employee search TUI for [HiBob](https://hibob.com)
+- Search employees by name
+- Displays: name, email, title, department, tenure, manager, direct reports
+- Requires API credentials in `~/.config/hibob/credentials` (not tracked in git)
+
+```bash
+hibob-search john        # Search from command line
+hibob-search             # Interactive mode
+```
+
 ### Applications
 
 **applications/** - Web app shortcuts
