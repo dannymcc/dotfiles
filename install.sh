@@ -79,6 +79,11 @@ backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 info "Installing tmux config..."
 backup_and_link "$SCRIPT_DIR/tmux/.config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
 
+# Waybar
+info "Installing waybar config..."
+backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/config.jsonc" "$HOME/.config/waybar/config.jsonc"
+backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/style.css" "$HOME/.config/waybar/style.css"
+
 # Web apps
 info "Installing web apps..."
 APPS_SRC="$SCRIPT_DIR/applications/.local/share/applications"
