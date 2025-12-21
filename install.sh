@@ -98,6 +98,12 @@ info "Installing waybar config..."
 backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/config.jsonc" "$HOME/.config/waybar/config.jsonc"
 backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/style.css" "$HOME/.config/waybar/style.css"
 
+# Elephant (Walker websearch)
+info "Installing elephant config..."
+backup_and_link "$SCRIPT_DIR/elephant/.config/elephant/websearch.toml" "$HOME/.config/elephant/websearch.toml"
+mkdir -p "$HOME/.local/share/icons"
+cp -n "$SCRIPT_DIR/elephant/.local/share/icons/provet.png" "$HOME/.local/share/icons/" 2>/dev/null || true
+
 # Web apps
 info "Installing web apps..."
 APPS_SRC="$SCRIPT_DIR/applications/.local/share/applications"
@@ -130,3 +136,4 @@ echo
 echo "Note: You may need to:"
 echo "  - Restart your shell or run: source ~/.bashrc"
 echo "  - Reload hyprland: hyprctl reload"
+echo "  - Restart elephant: systemctl --user restart elephant"

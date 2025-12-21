@@ -1,0 +1,5 @@
+[[entries]]
+name = "Provet Cloud"
+prefix = "pv"
+url = "https://hub.provetcloud.com/cloudhub/hub/provet/%TERM%/login"
+icon = "/home/danny/.local/share/icons/provet.png"
