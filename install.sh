@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry python-rich python-requests"
+PACKAGES="blueberry python-rich python-requests python-textual"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then

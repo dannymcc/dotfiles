@@ -71,13 +71,15 @@ systemctl --user restart elephant
 ### HiBob Search
 
 **scripts/hibob-search/** - Employee search TUI for [HiBob](https://hibob.com)
-- Search employees by name
+- Interactive two-panel interface (bluetui-style)
+- Search employees by name or email
 - Displays: name, email, title, department, tenure, manager, direct reports
+- Vim-style navigation (`j`/`k`, `/` to search, `q` to quit)
 - Requires API credentials in `~/.config/hibob/credentials` (not tracked in git)
 
 ```bash
-hibob-search john        # Search from command line
-hibob-search             # Interactive mode
+hibob-search             # Interactive TUI mode
+hibob-search john        # Quick search from command line
 ```
 
 ### Applications
