@@ -95,8 +95,8 @@
   },
   "battery": {
     "format": "{capacity}% {icon}",
-    "format-discharging": "{icon}",
-    "format-charging": "{icon}",
+    "format-discharging": "{capacity}% {icon}",
+    "format-charging": "{capacity}% {icon}",
     "format-plugged": "",
     "format-icons": {
       "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
@@ -163,7 +163,7 @@
     "on-click": "$TERMINAL -e btop"
   },
   "custom/weather": {
-    "format": "{}°",
+    "format": "{}",
     "tooltip": true,
     "interval": 600,
     "exec": "wttrbar",
