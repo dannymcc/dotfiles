@@ -14,8 +14,9 @@ from pathlib import Path
 try:
     from textual.app import App, ComposeResult
     from textual.widgets import Header, Footer, Input, ListView, ListItem, Static, Label
-    from textual.containers import Horizontal, Vertical, Container
+    from textual.containers import Horizontal, Vertical, Container, VerticalScroll
     from textual.binding import Binding
+    from textual.message import Message
     from textual import events
     from rich.text import Text
     from rich.panel import Panel
@@ -126,8 +127,8 @@ def calculate_tenure(start_date_str):
         return "Unknown"
 
 
-def find_manager(employee, all_employees):
-    """Find the manager's name for an employee."""
+def find_manager_employee(employee, all_employees):
+    """Find the manager employee object for an employee."""
     reports_to = employee.get("work", {}).get("reportsTo") or employee.get("reportsTo")
     if not reports_to:
         wrapped = employee.get("/work/reportsTo", {})
@@ -135,18 +136,37 @@ def find_manager(employee, all_employees):
             reports_to = wrapped.get("value")
     if not reports_to:
         return None
+
     if isinstance(reports_to, dict):
-        return reports_to.get("displayName") or reports_to.get("email") or str(reports_to)
+        manager_id = reports_to.get("id")
+        manager_email = reports_to.get("email")
+        for emp in all_employees:
+            emp_id = emp.get("id", "")
+            emp_email = get_field(emp, "email")
+            if (manager_id and emp_id == manager_id) or (manager_email and emp_email == manager_email):
+                return emp
+        # Return a synthetic employee if not found in list
+        return {"displayName": reports_to.get("displayName"), "email": reports_to.get("email"), "_synthetic": True}
+
+    # reports_to is an ID or email
     for emp in all_employees:
         emp_id = emp.get("id", "")
         emp_email = get_field(emp, "email")
         if reports_to == emp_id or reports_to == emp_email:
-            return get_field(emp, "displayName") or reports_to
-    return reports_to
+            return emp
+    return None
 
 
-def find_direct_reports(employee, all_employees):
-    """Find direct reports for an employee."""
+def find_manager(employee, all_employees):
+    """Find the manager's name for an employee."""
+    manager = find_manager_employee(employee, all_employees)
+    if manager:
+        return get_field(manager, "displayName") or manager.get("displayName") or "Unknown"
+    return None
+
+
+def find_direct_report_employees(employee, all_employees):
+    """Find direct report employee objects for an employee."""
     emp_id = employee.get("id", "")
     emp_email = get_field(employee, "email")
     reports = []
@@ -162,16 +182,29 @@ def find_direct_reports(employee, all_employees):
             manager_id = reports_to.get("id", "")
             manager_email = reports_to.get("email", "")
             if manager_id == emp_id or manager_email == emp_email:
-                name = get_field(emp, "displayName") or "Unknown"
-                reports.append(name)
+                reports.append(emp)
         elif reports_to == emp_id or reports_to == emp_email:
-            name = get_field(emp, "displayName") or "Unknown"
-            reports.append(name)
-    return sorted(reports)
+            reports.append(emp)
+    return sorted(reports, key=lambda e: get_field(e, "displayName") or "")
+
+
+def find_direct_reports(employee, all_employees):
+    """Find direct report names for an employee."""
+    reports = find_direct_report_employees(employee, all_employees)
+    return [get_field(emp, "displayName") or "Unknown" for emp in reports]
 
 
 class EmployeeList(ListView):
     """Custom ListView for employees with vim bindings."""
+
+    BINDINGS = [
+        Binding("j", "cursor_down", "Down", show=False),
+        Binding("k", "cursor_up", "Up", show=False),
+    ]
+
+
+class ReportsList(ListView):
+    """ListView for direct reports with vim bindings."""
 
     BINDINGS = [
         Binding("j", "cursor_down", "Down", show=False),
@@ -187,7 +220,7 @@ class EmployeeItem(ListItem):
         self.employee = employee
 
     def compose(self) -> ComposeResult:
-        name = get_field(self.employee, "displayName") or "Unknown"
+        name = get_field(self.employee, "displayName") or self.employee.get("displayName") or "Unknown"
         title = self.employee.get("_resolved_title", "")
         if title:
             yield Label(f"{name}\n[dim]{title}[/dim]")
@@ -195,25 +228,46 @@ class EmployeeItem(ListItem):
             yield Label(name)
 
 
+class ReportItem(ListItem):
+    """A list item representing a direct report."""
+
+    def __init__(self, employee: dict, lists: dict, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.employee = employee
+        self.lists = lists
+
+    def compose(self) -> ComposeResult:
+        name = get_field(self.employee, "displayName") or "Unknown"
+        title_raw = get_field(self.employee, "work.title") or get_field(self.employee, "title") or ""
+        title = self.lists.get("title", {}).get(str(title_raw), "") if title_raw else ""
+        if title:
+            yield Label(f"  {name}\n  [dim]{title}[/dim]")
+        else:
+            yield Label(f"  {name}")
+
+
 class EmployeeDetail(Static):
-    """Panel showing employee details."""
+    """Panel showing employee info (without direct reports list)."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.employee = None
         self.all_employees = []
         self.lists = {}
+        self.manager_employee = None
 
     def set_employee(self, employee, all_employees, lists):
         """Update the displayed employee."""
         self.employee = employee
         self.all_employees = all_employees
         self.lists = lists
+        self.manager_employee = find_manager_employee(employee, all_employees) if employee else None
         self.refresh_display()
 
     def clear(self):
         """Clear the display."""
         self.employee = None
+        self.manager_employee = None
         self.update("[dim]Select an employee to view details[/dim]")
 
     def refresh_display(self):
@@ -235,8 +289,7 @@ class EmployeeDetail(Static):
         start_date = get_field(emp, "work.startDate") or get_field(emp, "startDate") or ""
         tenure = calculate_tenure(start_date)
 
-        manager = find_manager(emp, self.all_employees)
-        direct_reports = find_direct_reports(emp, self.all_employees)
+        manager_name = get_field(self.manager_employee, "displayName") if self.manager_employee else None
 
         lines = [f"[bold cyan]{name}[/bold cyan]\n"]
         lines.append(f"[bold]Email:[/bold] {email}")
@@ -246,19 +299,10 @@ class EmployeeDetail(Static):
             lines.append(f"[bold]Department:[/bold] {department}")
         lines.append(f"[bold]Tenure:[/bold] {tenure}")
 
-        if manager:
-            lines.append(f"[bold]Reports to:[/bold] {manager}")
+        if manager_name:
+            lines.append(f"[bold]Reports to:[/bold] [@click=goto_manager]{manager_name}[/]")
         else:
             lines.append(f"[bold]Reports to:[/bold] [dim]None (top level)[/dim]")
-
-        if direct_reports:
-            lines.append(f"\n[bold]Direct reports:[/bold] ({len(direct_reports)})")
-            for report in direct_reports[:15]:  # Limit to 15
-                lines.append(f"  [dim]•[/dim] {report}")
-            if len(direct_reports) > 15:
-                lines.append(f"  [dim]... and {len(direct_reports) - 15} more[/dim]")
-        else:
-            lines.append(f"\n[bold]Direct reports:[/bold] [dim]None[/dim]")
 
         self.update("\n".join(lines))
 
@@ -297,7 +341,23 @@ class HiBobApp(App):
     #detail-container {
         height: 100%;
         border: solid $secondary;
+        layout: vertical;
+    }
+
+    #employee-detail {
+        height: auto;
         padding: 1;
+    }
+
+    #reports-header {
+        height: auto;
+        padding: 0 1;
+        background: $surface;
+    }
+
+    #reports-list {
+        height: 1fr;
+        padding: 0 1;
     }
 
     #status-bar {
@@ -318,6 +378,22 @@ class HiBobApp(App):
     EmployeeItem.-active {
         background: $accent;
     }
+
+    ReportItem {
+        padding: 0;
+    }
+
+    ReportItem:hover {
+        background: $boost;
+    }
+
+    ReportItem.-active {
+        background: $accent;
+    }
+
+    #reports-list:focus-within {
+        border: solid $primary;
+    }
     """
 
     BINDINGS = [
@@ -325,6 +401,10 @@ class HiBobApp(App):
         Binding("escape", "focus_search", "Search", show=False),
         Binding("/", "focus_search", "Search"),
         Binding("ctrl+c", "quit", "Quit", show=False),
+        Binding("tab", "switch_focus", "Switch Panel"),
+        Binding("shift+tab", "switch_focus", "Switch Panel", show=False),
+        Binding("backspace", "go_back", "Back"),
+        Binding("m", "goto_manager", "Manager"),
     ]
 
     def __init__(self):
@@ -334,6 +414,8 @@ class HiBobApp(App):
         self.lists = {}
         self.user_id = None
         self.token = None
+        self.history = []  # Stack of previously viewed employees
+        self.current_employee = None
 
     def compose(self) -> ComposeResult:
         yield Container(
@@ -346,6 +428,8 @@ class HiBobApp(App):
         )
         yield Container(
             EmployeeDetail(id="employee-detail"),
+            Static("[bold]Direct Reports[/bold]", id="reports-header"),
+            ReportsList(id="reports-list"),
             id="detail-container"
         )
         yield Static("Loading...", id="status-bar")
@@ -379,10 +463,22 @@ class HiBobApp(App):
 
             self.filtered_employees = self.all_employees
             self.update_list()
-            status.update(f"[green]{len(self.all_employees)} employees[/green] | [dim]/ Search  j/k Navigate  Enter Select  q Quit[/dim]")
+            self.update_status()
 
         except Exception as e:
             status.update(f"[red]Error:[/red] {str(e)}")
+
+    def update_status(self) -> None:
+        """Update the status bar."""
+        status = self.query_one("#status-bar", Static)
+        search_input = self.query_one("#search-input", Input)
+        query = search_input.value.strip()
+
+        back_hint = "  Backspace Back" if self.history else ""
+        if query:
+            status.update(f"[green]{len(self.filtered_employees)} matches[/green] | [dim]/ Search  Tab Switch  j/k Navigate  m Manager{back_hint}  q Quit[/dim]")
+        else:
+            status.update(f"[green]{len(self.all_employees)} employees[/green] | [dim]/ Search  Tab Switch  j/k Navigate  m Manager{back_hint}  q Quit[/dim]")
 
     def update_list(self) -> None:
         """Update the employee list."""
@@ -390,6 +486,36 @@ class HiBobApp(App):
         list_view.clear()
         for emp in self.filtered_employees[:100]:  # Limit to 100 for performance
             list_view.append(EmployeeItem(emp))
+
+    def update_reports_list(self, employee) -> None:
+        """Update the direct reports list."""
+        reports_list = self.query_one("#reports-list", ReportsList)
+        reports_list.clear()
+
+        if not employee:
+            return
+
+        direct_reports = find_direct_report_employees(employee, self.all_employees)
+        reports_header = self.query_one("#reports-header", Static)
+
+        if direct_reports:
+            reports_header.update(f"[bold]Direct Reports[/bold] ({len(direct_reports)})")
+            for emp in direct_reports:
+                reports_list.append(ReportItem(emp, self.lists))
+        else:
+            reports_header.update("[bold]Direct Reports[/bold] [dim](none)[/dim]")
+
+    def select_employee(self, employee, add_to_history=True) -> None:
+        """Select and display an employee."""
+        if add_to_history and self.current_employee:
+            self.history.append(self.current_employee)
+
+        self.current_employee = employee
+
+        detail = self.query_one("#employee-detail", EmployeeDetail)
+        detail.set_employee(employee, self.all_employees, self.lists)
+        self.update_reports_list(employee)
+        self.update_status()
 
     def on_input_changed(self, event: Input.Changed) -> None:
         """Handle search input changes."""
@@ -403,28 +529,54 @@ class HiBobApp(App):
                 or query in (get_field(emp, "email") or "").lower()
             ]
         self.update_list()
-
-        status = self.query_one("#status-bar", Static)
-        if query:
-            status.update(f"[green]{len(self.filtered_employees)} matches[/green] | [dim]/ Search  j/k Navigate  Enter Select  q Quit[/dim]")
-        else:
-            status.update(f"[green]{len(self.all_employees)} employees[/green] | [dim]/ Search  j/k Navigate  Enter Select  q Quit[/dim]")
+        self.update_status()
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
-        """Handle employee selection."""
+        """Handle list item selection."""
         if isinstance(event.item, EmployeeItem):
-            detail = self.query_one("#employee-detail", EmployeeDetail)
-            detail.set_employee(event.item.employee, self.all_employees, self.lists)
+            self.select_employee(event.item.employee)
+        elif isinstance(event.item, ReportItem):
+            self.select_employee(event.item.employee)
 
     def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
         """Handle employee highlight (cursor movement)."""
-        if isinstance(event.item, EmployeeItem):
-            detail = self.query_one("#employee-detail", EmployeeDetail)
-            detail.set_employee(event.item.employee, self.all_employees, self.lists)
+        # Only auto-show for main employee list, not reports
+        if event.item and isinstance(event.item, EmployeeItem):
+            if event.list_view.id == "employee-list":
+                self.select_employee(event.item.employee, add_to_history=False)
 
     def action_focus_search(self) -> None:
         """Focus the search input."""
         self.query_one("#search-input", Input).focus()
+
+    def action_switch_focus(self) -> None:
+        """Switch focus between employee list and reports list."""
+        employee_list = self.query_one("#employee-list", EmployeeList)
+        reports_list = self.query_one("#reports-list", ReportsList)
+
+        if employee_list.has_focus:
+            reports_list.focus()
+        else:
+            employee_list.focus()
+
+    def action_go_back(self) -> None:
+        """Go back to previously viewed employee."""
+        if self.history:
+            prev_employee = self.history.pop()
+            self.current_employee = prev_employee
+            detail = self.query_one("#employee-detail", EmployeeDetail)
+            detail.set_employee(prev_employee, self.all_employees, self.lists)
+            self.update_reports_list(prev_employee)
+            self.update_status()
+
+    def action_goto_manager(self) -> None:
+        """Navigate to the current employee's manager."""
+        if not self.current_employee:
+            return
+
+        manager = find_manager_employee(self.current_employee, self.all_employees)
+        if manager and not manager.get("_synthetic"):
+            self.select_employee(manager)
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle Enter in search - focus the list."""
