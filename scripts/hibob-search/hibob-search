@@ -154,50 +154,63 @@ class EmpItem(ListItem):
 
 
 class HiBobApp(App):
-    TITLE = "HiBob"
+    TITLE = "HiBob Search"
     CSS = """
+    $hibob-red: #E8164F;
+    $hibob-wine: #83143D;
+    $hibob-orange: #FFA32B;
+    $hibob-text: #3A3A37;
+    $hibob-light: #FAC7D1;
+
     Screen {
         layout: grid;
         grid-size: 2 3;
         grid-columns: 1fr 2fr;
         grid-rows: auto 1fr auto;
+        background: #1a1a1a;
     }
     #search {
         column-span: 2;
         padding: 1 2;
-        background: $surface;
+        background: #252525;
     }
     #search-input {
         width: 100%;
-        border: tall $primary;
+        border: tall $hibob-red;
+        background: #1a1a1a;
+    }
+    #search-input:focus {
+        border: tall $hibob-orange;
     }
     #list-box {
-        border: round $primary;
+        border: round $hibob-red;
         margin: 0 1 0 1;
+        background: #1a1a1a;
     }
     #emp-list { height: 100%; scrollbar-gutter: stable; }
     #detail-box {
-        border: round $secondary;
+        border: round $hibob-wine;
         margin: 0 1 0 0;
         padding: 1 2;
+        background: #1a1a1a;
     }
     #detail { height: auto; }
     #reports-title {
         padding: 1 0 0 0;
         text-style: bold;
-        color: $text-muted;
+        color: $hibob-orange;
     }
     #reports { height: 1fr; scrollbar-gutter: stable; }
     #status {
         column-span: 2;
         padding: 0 2;
-        background: $surface;
-        color: $text-muted;
+        background: #252525;
+        color: #888888;
     }
     EmpItem { padding: 0 1; height: auto; }
-    EmpItem:hover { background: $primary 20%; }
-    EmpItem.-active { background: $primary 40%; }
-    EmpItem:focus { background: $primary 40%; }
+    EmpItem:hover { background: $hibob-wine 30%; }
+    EmpItem.-active { background: $hibob-red 40%; }
+    EmpItem:focus { background: $hibob-red 40%; }
     """
 
     BINDINGS = [

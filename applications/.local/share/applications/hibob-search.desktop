@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=HiBob Search
+Comment=Search HiBob employees
+Exec=xdg-terminal-exec --app-id=TUI.float -e hibob-search
+Terminal=false
+Type=Application
+Icon=/home/danny/.local/share/applications/icons/hibob.png
+StartupNotify=true
+Categories=Utility;
