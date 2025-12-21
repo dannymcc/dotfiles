@@ -138,6 +138,10 @@ def copy_to_clipboard(text):
             return False
 
 
+class SearchInput(Input):
+    BINDINGS = [Binding("tab", "submit", show=False)]
+
+
 class EmpList(ListView):
     BINDINGS = [Binding("j", "cursor_down", show=False), Binding("k", "cursor_up", show=False)]
 
@@ -246,7 +250,7 @@ class HiBobApp(App):
             Static("[bold white]HiBob Employee Search[/bold white]", id="header-content"),
             id="header"
         )
-        yield Container(Input(placeholder="Search...", id="search-input"), id="search")
+        yield Container(SearchInput(placeholder="Search...", id="search-input"), id="search")
         yield Container(EmpList(id="emp-list"), id="list-box")
         yield Container(
             Static(id="detail"),
@@ -282,7 +286,7 @@ class HiBobApp(App):
             status.update(f"[red]Error:[/red] {ex}")
 
     def update_status(self):
-        q = self.query_one("#search-input", Input).value.strip()
+        q = self.query_one("#search-input", SearchInput).value.strip()
         n = len(self.filtered) if q else len(self.all_emps)
         label = "matches" if q else "employees"
         hints = "/ Search  Tab Switch  m Manager  c Copy"
@@ -367,21 +371,12 @@ class HiBobApp(App):
                 self.query_one("#reports", EmpList).focus()
 
     def action_search(self):
-        self.query_one("#search-input", Input).focus()
+        self.query_one("#search-input", SearchInput).focus()
 
     def action_switch(self):
-        search_input = self.query_one("#search-input", Input)
         emp_list = self.query_one("#emp-list", EmpList)
         reports = self.query_one("#reports", EmpList)
-        if search_input.has_focus:
-            emp_list.focus()
-            if emp_list.children:
-                emp_list.index = 0
-                first = emp_list.children[0]
-                if isinstance(first, EmpItem):
-                    self.show_employee(first.emp)
-        else:
-            (reports if emp_list.has_focus else emp_list).focus()
+        (reports if emp_list.has_focus else emp_list).focus()
 
     def action_back(self):
         if self.history:
