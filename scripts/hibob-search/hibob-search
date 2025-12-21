@@ -370,9 +370,18 @@ class HiBobApp(App):
         self.query_one("#search-input", Input).focus()
 
     def action_switch(self):
+        search_input = self.query_one("#search-input", Input)
         emp_list = self.query_one("#emp-list", EmpList)
         reports = self.query_one("#reports", EmpList)
-        (reports if emp_list.has_focus else emp_list).focus()
+        if search_input.has_focus:
+            emp_list.focus()
+            if emp_list.children:
+                emp_list.index = 0
+                first = emp_list.children[0]
+                if isinstance(first, EmpItem):
+                    self.show_employee(first.emp)
+        else:
+            (reports if emp_list.has_focus else emp_list).focus()
 
     def action_back(self):
         if self.history:
