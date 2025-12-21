@@ -4,10 +4,12 @@ HiBob Employee Search TUI
 """
 
 import sys
+import json
 import subprocess
 import requests
 from datetime import datetime
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 try:
     from textual.app import App, ComposeResult
@@ -21,7 +23,40 @@ except ImportError:
     sys.exit(1)
 
 CONFIG_PATH = Path.home() / ".config" / "hibob" / "credentials"
+CACHE_PATH = Path.home() / ".cache" / "hibob" / "employees.json"
 API_BASE = "https://api.hibob.com/v1"
+
+
+def load_cache():
+    if not CACHE_PATH.exists():
+        return None
+    try:
+        with open(CACHE_PATH) as f:
+            return json.load(f)
+    except:
+        return None
+
+
+def save_cache(employees, lists):
+    CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    data = {
+        "timestamp": datetime.now().isoformat(),
+        "employees": employees,
+        "lists": lists,
+    }
+    with open(CACHE_PATH, "w") as f:
+        json.dump(data, f)
+
+
+def fetch_all_data(uid, tok):
+    """Fetch employees and lists in parallel."""
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        emp_future = executor.submit(fetch_all_employees, uid, tok)
+        title_future = executor.submit(fetch_named_list, uid, tok, "title")
+        dept_future = executor.submit(fetch_named_list, uid, tok, "department")
+        employees = emp_future.result()
+        lists = {"title": title_future.result(), "dept": dept_future.result()}
+    return employees, lists
 
 
 def load_credentials():
@@ -235,6 +270,7 @@ class HiBobApp(App):
         Binding("m", "manager", "Manager"),
         Binding("c", "copy_email", "Copy Email"),
         Binding("n", "copy_name", "Copy Name"),
+        Binding("r", "refresh", "Refresh"),
         Binding("ctrl+c", "quit", show=False),
     ]
 
@@ -245,6 +281,7 @@ class HiBobApp(App):
         self.lists = {}
         self.history = []
         self.current = None
+        self.cache_time = None
 
     def compose(self):
         yield Container(
@@ -264,36 +301,65 @@ class HiBobApp(App):
     def on_mount(self):
         self.load_data()
 
-    def load_data(self):
+    def load_data(self, force_refresh=False):
         status = self.query_one("#status", Static)
         uid, tok = load_credentials()
         if not uid:
             status.update("[red]Error:[/red] Configure ~/.config/hibob/credentials")
             return
-        status.update("Loading...")
+
+        # Try cache first unless forcing refresh
+        if not force_refresh:
+            cache = load_cache()
+            if cache:
+                self.all_emps = cache.get("employees", [])
+                self.lists = cache.get("lists", {})
+                try:
+                    self.cache_time = datetime.fromisoformat(cache.get("timestamp", ""))
+                except:
+                    self.cache_time = None
+                self._process_employees()
+                return
+
+        status.update("Loading from API...")
         try:
-            self.all_emps = fetch_all_employees(uid, tok)
-            self.lists = {
-                "title": fetch_named_list(uid, tok, "title"),
-                "dept": fetch_named_list(uid, tok, "department"),
-            }
-            for e in self.all_emps:
-                t = get_field(e, "work.title") or get_field(e, "title") or ""
-                e["_title"] = self.lists["title"].get(str(t), "")
-            self.filtered = self.all_emps
-            self.refresh_list()
-            self.update_status()
+            self.all_emps, self.lists = fetch_all_data(uid, tok)
+            save_cache(self.all_emps, self.lists)
+            self.cache_time = datetime.now()
+            self._process_employees()
         except Exception as ex:
             status.update(f"[red]Error:[/red] {ex}")
+
+    def _process_employees(self):
+        for e in self.all_emps:
+            t = get_field(e, "work.title") or get_field(e, "title") or ""
+            e["_title"] = self.lists.get("title", {}).get(str(t), "")
+        self.filtered = self.all_emps
+        self.refresh_list()
+        self.update_status()
 
     def update_status(self):
         q = self.query_one("#search-input", SearchInput).value.strip()
         n = len(self.filtered) if q else len(self.all_emps)
         label = "matches" if q else "employees"
-        hints = "/ Search  Tab Switch  m Manager  c Email  n Name"
+
+        # Calculate cache age
+        cache_info = ""
+        if self.cache_time:
+            age = datetime.now() - self.cache_time
+            if age.days > 0:
+                cache_info = f" [dim](cached {age.days}d ago)[/dim]"
+            elif age.seconds >= 3600:
+                cache_info = f" [dim](cached {age.seconds // 3600}h ago)[/dim]"
+            elif age.seconds >= 60:
+                cache_info = f" [dim](cached {age.seconds // 60}m ago)[/dim]"
+            else:
+                cache_info = " [dim](just updated)[/dim]"
+
+        hints = "/ Search  Tab Switch  m Manager  c Email  n Name  r Refresh"
         if self.history:
             hints += "  ⌫ Back"
-        self.query_one("#status", Static).update(f"[green]{n} {label}[/green] │ [dim]{hints}  q Quit[/dim]")
+        self.query_one("#status", Static).update(f"[green]{n} {label}[/green]{cache_info} │ [dim]{hints}  q Quit[/dim]")
 
     def refresh_list(self):
         lst = self.query_one("#emp-list", EmpList)
@@ -403,6 +469,9 @@ class HiBobApp(App):
             name = get_field(self.current, "displayName")
             if name and copy_to_clipboard(name):
                 self.query_one("#status", Static).update(f"[green]Copied:[/green] {name}")
+
+    def action_refresh(self):
+        self.load_data(force_refresh=True)
 
 
 def main():
