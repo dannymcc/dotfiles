@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
 """
 HiBob Employee Search TUI
-
-Interactive terminal interface for searching employees.
 """
 
 import sys
-import os
+import subprocess
 import requests
 from datetime import datetime
 from pathlib import Path
 
 try:
     from textual.app import App, ComposeResult
-    from textual.widgets import Header, Footer, Input, ListView, ListItem, Static, Label
-    from textual.containers import Horizontal, Vertical, Container, VerticalScroll
+    from textual.widgets import Input, ListView, ListItem, Static, Label
+    from textual.containers import Container
     from textual.binding import Binding
-    from textual.message import Message
-    from textual import events
-    from rich.text import Text
     from rich.panel import Panel
     from rich import box
 except ImportError:
@@ -30,10 +25,8 @@ API_BASE = "https://api.hibob.com/v1"
 
 
 def load_credentials():
-    """Load API credentials from config file."""
     if not CONFIG_PATH.exists():
         return None, None
-
     creds = {}
     with open(CONFIG_PATH) as f:
         for line in f:
@@ -41,18 +34,14 @@ def load_credentials():
             if line and not line.startswith("#") and "=" in line:
                 key, value = line.split("=", 1)
                 creds[key.strip()] = value.strip()
-
     user_id = creds.get("HIBOB_SERVICE_USER_ID")
     token = creds.get("HIBOB_SERVICE_USER_TOKEN")
-
     if not user_id or not token or "your_" in user_id or "your_" in token:
         return None, None
-
     return user_id, token
 
 
 def fetch_named_list(user_id, token, list_name):
-    """Fetch a named list from HiBob and return ID->name mapping."""
     url = f"{API_BASE}/company/named-lists/{list_name}"
     response = requests.get(url, auth=(user_id, token))
     if response.status_code != 200:
@@ -62,598 +51,321 @@ def fetch_named_list(user_id, token, list_name):
 
 
 def fetch_all_employees(user_id, token):
-    """Fetch all employees from HiBob."""
     url = f"{API_BASE}/people/search"
     payload = {
         "fields": [
-            "root.id",
-            "root.displayName",
-            "root.email",
-            "work.startDate",
-            "work.reportsTo",
-            "work.title",
-            "work.department"
+            "root.id", "root.displayName", "root.email",
+            "work.startDate", "work.reportsTo", "work.title", "work.department"
         ]
     }
-    response = requests.post(
-        url,
-        json=payload,
-        auth=(user_id, token),
-        headers={"Content-Type": "application/json"}
-    )
+    response = requests.post(url, json=payload, auth=(user_id, token),
+                            headers={"Content-Type": "application/json"})
     if response.status_code != 200:
         return []
     return response.json().get("employees", [])
 
 
-def get_field(employee, field):
-    """Get a field value handling both flat and nested response formats."""
-    if field in employee:
-        val = employee[field]
-        if isinstance(val, dict):
-            return val.get("value", "")
-        return val
+def get_field(emp, field):
+    if field in emp:
+        val = emp[field]
+        return val.get("value", "") if isinstance(val, dict) else val
     parts = field.split(".")
-    obj = employee
+    obj = emp
     for part in parts:
-        if isinstance(obj, dict):
-            obj = obj.get(part, {})
-        else:
-            return ""
-    if isinstance(obj, dict):
-        return obj.get("value", "")
-    return obj if obj else ""
+        obj = obj.get(part, {}) if isinstance(obj, dict) else ""
+    return obj.get("value", "") if isinstance(obj, dict) else (obj or "")
 
 
-def calculate_tenure(start_date_str):
-    """Calculate tenure from start date."""
-    if not start_date_str:
+def calc_tenure(start_date):
+    if not start_date:
         return "Unknown"
     try:
-        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-        today = datetime.now()
-        delta = today - start_date
-        years = delta.days // 365
-        months = (delta.days % 365) // 30
+        delta = datetime.now() - datetime.strptime(start_date, "%Y-%m-%d")
+        years, months = delta.days // 365, (delta.days % 365) // 30
         if years > 0:
-            if months > 0:
-                return f"{years}y {months}m"
-            return f"{years}y"
-        elif months > 0:
-            return f"{months}m"
-        else:
-            return f"{delta.days}d"
+            return f"{years}y {months}m" if months else f"{years}y"
+        return f"{months}m" if months else f"{delta.days}d"
     except ValueError:
         return "Unknown"
 
 
-def find_manager_employee(employee, all_employees):
-    """Find the manager employee object for an employee."""
-    reports_to = employee.get("work", {}).get("reportsTo") or employee.get("reportsTo")
+def find_manager(emp, all_emps):
+    reports_to = emp.get("work", {}).get("reportsTo") or emp.get("reportsTo")
     if not reports_to:
-        wrapped = employee.get("/work/reportsTo", {})
-        if isinstance(wrapped, dict):
-            reports_to = wrapped.get("value")
+        reports_to = emp.get("/work/reportsTo", {}).get("value") if isinstance(emp.get("/work/reportsTo"), dict) else None
     if not reports_to:
-        return None
-
+        return None, None
     if isinstance(reports_to, dict):
-        manager_id = reports_to.get("id")
-        manager_email = reports_to.get("email")
-        for emp in all_employees:
-            emp_id = emp.get("id", "")
-            emp_email = get_field(emp, "email")
-            if (manager_id and emp_id == manager_id) or (manager_email and emp_email == manager_email):
-                return emp
-        # Return a synthetic employee if not found in list
-        return {"displayName": reports_to.get("displayName"), "email": reports_to.get("email"), "_synthetic": True}
-
-    # reports_to is an ID or email
-    for emp in all_employees:
-        emp_id = emp.get("id", "")
-        emp_email = get_field(emp, "email")
-        if reports_to == emp_id or reports_to == emp_email:
-            return emp
-    return None
+        mgr_id, mgr_email = reports_to.get("id"), reports_to.get("email")
+        for e in all_emps:
+            if e.get("id") == mgr_id or get_field(e, "email") == mgr_email:
+                return e, get_field(e, "displayName")
+        return None, reports_to.get("displayName")
+    for e in all_emps:
+        if e.get("id") == reports_to or get_field(e, "email") == reports_to:
+            return e, get_field(e, "displayName")
+    return None, None
 
 
-def find_manager(employee, all_employees):
-    """Find the manager's name for an employee."""
-    manager = find_manager_employee(employee, all_employees)
-    if manager:
-        return get_field(manager, "displayName") or manager.get("displayName") or "Unknown"
-    return None
-
-
-def find_direct_report_employees(employee, all_employees):
-    """Find direct report employee objects for an employee."""
-    emp_id = employee.get("id", "")
-    emp_email = get_field(employee, "email")
+def find_reports(emp, all_emps):
+    emp_id, emp_email = emp.get("id", ""), get_field(emp, "email")
     reports = []
-    for emp in all_employees:
-        reports_to = emp.get("work", {}).get("reportsTo") or emp.get("reportsTo")
-        if not reports_to:
-            wrapped = emp.get("/work/reportsTo", {})
-            if isinstance(wrapped, dict):
-                reports_to = wrapped.get("value")
-        if not reports_to:
+    for e in all_emps:
+        rt = e.get("work", {}).get("reportsTo") or e.get("reportsTo")
+        if not rt:
+            rt = e.get("/work/reportsTo", {}).get("value") if isinstance(e.get("/work/reportsTo"), dict) else None
+        if not rt:
             continue
-        if isinstance(reports_to, dict):
-            manager_id = reports_to.get("id", "")
-            manager_email = reports_to.get("email", "")
-            if manager_id == emp_id or manager_email == emp_email:
-                reports.append(emp)
-        elif reports_to == emp_id or reports_to == emp_email:
-            reports.append(emp)
-    return sorted(reports, key=lambda e: get_field(e, "displayName") or "")
+        if isinstance(rt, dict):
+            if rt.get("id") == emp_id or rt.get("email") == emp_email:
+                reports.append(e)
+        elif rt == emp_id or rt == emp_email:
+            reports.append(e)
+    return sorted(reports, key=lambda x: get_field(x, "displayName") or "")
 
 
-def find_direct_reports(employee, all_employees):
-    """Find direct report names for an employee."""
-    reports = find_direct_report_employees(employee, all_employees)
-    return [get_field(emp, "displayName") or "Unknown" for emp in reports]
+def copy_to_clipboard(text):
+    try:
+        subprocess.run(["wl-copy", text], check=True, capture_output=True)
+        return True
+    except:
+        try:
+            subprocess.run(["xclip", "-selection", "clipboard"], input=text.encode(), check=True)
+            return True
+        except:
+            return False
 
 
-class EmployeeList(ListView):
-    """Custom ListView for employees with vim bindings."""
-
-    BINDINGS = [
-        Binding("j", "cursor_down", "Down", show=False),
-        Binding("k", "cursor_up", "Up", show=False),
-    ]
+class EmpList(ListView):
+    BINDINGS = [Binding("j", "cursor_down", show=False), Binding("k", "cursor_up", show=False)]
 
 
-class ReportsList(ListView):
-    """ListView for direct reports with vim bindings."""
+class EmpItem(ListItem):
+    def __init__(self, emp, title=""):
+        super().__init__()
+        self.emp = emp
+        self.title = title
 
-    BINDINGS = [
-        Binding("j", "cursor_down", "Down", show=False),
-        Binding("k", "cursor_up", "Up", show=False),
-    ]
-
-
-class EmployeeItem(ListItem):
-    """A list item representing an employee."""
-
-    def __init__(self, employee: dict, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.employee = employee
-
-    def compose(self) -> ComposeResult:
-        name = get_field(self.employee, "displayName") or self.employee.get("displayName") or "Unknown"
-        title = self.employee.get("_resolved_title", "")
-        if title:
-            yield Label(f"{name}\n[dim]{title}[/dim]")
-        else:
-            yield Label(name)
-
-
-class ReportItem(ListItem):
-    """A list item representing a direct report."""
-
-    def __init__(self, employee: dict, lists: dict, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.employee = employee
-        self.lists = lists
-
-    def compose(self) -> ComposeResult:
-        name = get_field(self.employee, "displayName") or "Unknown"
-        title_raw = get_field(self.employee, "work.title") or get_field(self.employee, "title") or ""
-        title = self.lists.get("title", {}).get(str(title_raw), "") if title_raw else ""
-        if title:
-            yield Label(f"  {name}\n  [dim]{title}[/dim]")
-        else:
-            yield Label(f"  {name}")
-
-
-class EmployeeDetail(Static):
-    """Panel showing employee info (without direct reports list)."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.employee = None
-        self.all_employees = []
-        self.lists = {}
-        self.manager_employee = None
-
-    def set_employee(self, employee, all_employees, lists):
-        """Update the displayed employee."""
-        self.employee = employee
-        self.all_employees = all_employees
-        self.lists = lists
-        self.manager_employee = find_manager_employee(employee, all_employees) if employee else None
-        self.refresh_display()
-
-    def clear(self):
-        """Clear the display."""
-        self.employee = None
-        self.manager_employee = None
-        self.update("[dim]Select an employee to view details[/dim]")
-
-    def refresh_display(self):
-        """Refresh the employee detail display."""
-        if not self.employee:
-            self.update("[dim]Select an employee to view details[/dim]")
-            return
-
-        emp = self.employee
-        name = get_field(emp, "displayName") or "Unknown"
-        email = get_field(emp, "email") or "Unknown"
-
-        title_raw = get_field(emp, "work.title") or get_field(emp, "title") or ""
-        department_raw = get_field(emp, "work.department") or get_field(emp, "department") or ""
-
-        title = self.lists.get("title", {}).get(str(title_raw), title_raw) if title_raw else ""
-        department = self.lists.get("department", {}).get(str(department_raw), department_raw) if department_raw else ""
-
-        start_date = get_field(emp, "work.startDate") or get_field(emp, "startDate") or ""
-        tenure = calculate_tenure(start_date)
-
-        manager_name = get_field(self.manager_employee, "displayName") if self.manager_employee else None
-
-        lines = [f"[bold cyan]{name}[/bold cyan]\n"]
-        lines.append(f"[bold]Email:[/bold] {email}")
-        if title:
-            lines.append(f"[bold]Title:[/bold] {title}")
-        if department:
-            lines.append(f"[bold]Department:[/bold] {department}")
-        lines.append(f"[bold]Tenure:[/bold] {tenure}")
-
-        if manager_name:
-            lines.append(f"[bold]Reports to:[/bold] [@click=goto_manager]{manager_name}[/]")
-        else:
-            lines.append(f"[bold]Reports to:[/bold] [dim]None (top level)[/dim]")
-
-        self.update("\n".join(lines))
+    def compose(self):
+        name = get_field(self.emp, "displayName") or "Unknown"
+        yield Label(f"{name}\n[dim]{self.title}[/dim]" if self.title else name)
 
 
 class HiBobApp(App):
-    """HiBob Employee Search TUI Application."""
-
     CSS = """
-    Screen {
-        layout: grid;
-        grid-size: 2 3;
-        grid-columns: 1fr 1fr;
-        grid-rows: auto 1fr auto;
-    }
-
-    #search-container {
-        column-span: 2;
-        height: auto;
-        padding: 1;
-    }
-
-    #search-input {
-        width: 100%;
-    }
-
-    #employee-list-container {
-        height: 100%;
-        border: solid $primary;
-        padding: 0 1;
-    }
-
-    #employee-list {
-        height: 100%;
-    }
-
-    #detail-container {
-        height: 100%;
-        border: solid $secondary;
-        layout: vertical;
-    }
-
-    #employee-detail {
-        height: auto;
-        padding: 1;
-    }
-
-    #reports-header {
-        height: auto;
-        padding: 0 1;
-        background: $surface;
-    }
-
-    #reports-list {
-        height: 1fr;
-        padding: 0 1;
-    }
-
-    #status-bar {
-        column-span: 2;
-        height: auto;
-        padding: 0 1;
-        background: $surface;
-    }
-
-    EmployeeItem {
-        padding: 0 1;
-    }
-
-    EmployeeItem:hover {
-        background: $boost;
-    }
-
-    EmployeeItem.-active {
-        background: $accent;
-    }
-
-    ReportItem {
-        padding: 0;
-    }
-
-    ReportItem:hover {
-        background: $boost;
-    }
-
-    ReportItem.-active {
-        background: $accent;
-    }
-
-    #reports-list:focus-within {
-        border: solid $primary;
-    }
+    Screen { layout: grid; grid-size: 2 3; grid-columns: 2fr 3fr; grid-rows: auto 1fr auto; }
+    #search { column-span: 2; padding: 1; }
+    #search-input { width: 100%; }
+    #list-box { border: solid $primary; }
+    #emp-list { height: 100%; }
+    #detail-box { border: solid $secondary; padding: 1; }
+    #detail { height: auto; }
+    #reports-title { padding: 1 0 0 0; }
+    #reports { height: 1fr; }
+    #status { column-span: 2; padding: 0 1; background: $surface; }
+    EmpItem { padding: 0 1; }
+    EmpItem:hover { background: $boost; }
+    EmpItem.-active { background: $accent; }
     """
 
     BINDINGS = [
         Binding("q", "quit", "Quit"),
-        Binding("escape", "focus_search", "Search", show=False),
-        Binding("/", "focus_search", "Search"),
-        Binding("ctrl+c", "quit", "Quit", show=False),
-        Binding("tab", "switch_focus", "Switch Panel"),
-        Binding("shift+tab", "switch_focus", "Switch Panel", show=False),
-        Binding("backspace", "go_back", "Back"),
-        Binding("m", "goto_manager", "Manager"),
+        Binding("/", "search", "Search"),
+        Binding("escape", "search", show=False),
+        Binding("tab", "switch", "Switch"),
+        Binding("backspace", "back", "Back"),
+        Binding("m", "manager", "Manager"),
+        Binding("c", "copy", "Copy Email"),
+        Binding("ctrl+c", "quit", show=False),
     ]
 
     def __init__(self):
         super().__init__()
-        self.all_employees = []
-        self.filtered_employees = []
+        self.all_emps = []
+        self.filtered = []
         self.lists = {}
-        self.user_id = None
-        self.token = None
-        self.history = []  # Stack of previously viewed employees
-        self.current_employee = None
+        self.history = []
+        self.current = None
 
-    def compose(self) -> ComposeResult:
+    def compose(self):
+        yield Container(Input(placeholder="Search...", id="search-input"), id="search")
+        yield Container(EmpList(id="emp-list"), id="list-box")
         yield Container(
-            Input(placeholder="Search employees...", id="search-input"),
-            id="search-container"
+            Static(id="detail"),
+            Static("[bold]Direct Reports[/bold]", id="reports-title"),
+            EmpList(id="reports"),
+            id="detail-box"
         )
-        yield Container(
-            EmployeeList(id="employee-list"),
-            id="employee-list-container"
-        )
-        yield Container(
-            EmployeeDetail(id="employee-detail"),
-            Static("[bold]Direct Reports[/bold]", id="reports-header"),
-            ReportsList(id="reports-list"),
-            id="detail-container"
-        )
-        yield Static("Loading...", id="status-bar")
+        yield Static("Loading...", id="status")
 
-    def on_mount(self) -> None:
-        """Load data when app starts."""
+    def on_mount(self):
         self.load_data()
 
-    def load_data(self) -> None:
-        """Load employees from HiBob."""
-        status = self.query_one("#status-bar", Static)
-
-        self.user_id, self.token = load_credentials()
-        if not self.user_id or not self.token:
-            status.update("[red]Error:[/red] Credentials not configured. Edit ~/.config/hibob/credentials")
+    def load_data(self):
+        status = self.query_one("#status", Static)
+        uid, tok = load_credentials()
+        if not uid:
+            status.update("[red]Error:[/red] Configure ~/.config/hibob/credentials")
             return
-
-        status.update("Fetching employees...")
-
+        status.update("Loading...")
         try:
-            self.all_employees = fetch_all_employees(self.user_id, self.token)
+            self.all_emps = fetch_all_employees(uid, tok)
             self.lists = {
-                "title": fetch_named_list(self.user_id, self.token, "title"),
-                "department": fetch_named_list(self.user_id, self.token, "department"),
+                "title": fetch_named_list(uid, tok, "title"),
+                "dept": fetch_named_list(uid, tok, "department"),
             }
-
-            # Pre-resolve titles for list display
-            for emp in self.all_employees:
-                title_raw = get_field(emp, "work.title") or get_field(emp, "title") or ""
-                emp["_resolved_title"] = self.lists.get("title", {}).get(str(title_raw), "")
-
-            self.filtered_employees = self.all_employees
-            self.update_list()
+            for e in self.all_emps:
+                t = get_field(e, "work.title") or get_field(e, "title") or ""
+                e["_title"] = self.lists["title"].get(str(t), "")
+            self.filtered = self.all_emps
+            self.refresh_list()
             self.update_status()
+        except Exception as ex:
+            status.update(f"[red]Error:[/red] {ex}")
 
-        except Exception as e:
-            status.update(f"[red]Error:[/red] {str(e)}")
+    def update_status(self):
+        q = self.query_one("#search-input", Input).value.strip()
+        n = len(self.filtered) if q else len(self.all_emps)
+        label = "matches" if q else "employees"
+        hints = "/ Search  Tab Switch  m Manager  c Copy"
+        if self.history:
+            hints += "  ⌫ Back"
+        self.query_one("#status", Static).update(f"[green]{n} {label}[/green] │ [dim]{hints}  q Quit[/dim]")
 
-    def update_status(self) -> None:
-        """Update the status bar."""
-        status = self.query_one("#status-bar", Static)
-        search_input = self.query_one("#search-input", Input)
-        query = search_input.value.strip()
+    def refresh_list(self):
+        lst = self.query_one("#emp-list", EmpList)
+        lst.clear()
+        for e in self.filtered[:100]:
+            lst.append(EmpItem(e, e.get("_title", "")))
 
-        back_hint = "  Backspace Back" if self.history else ""
-        if query:
-            status.update(f"[green]{len(self.filtered_employees)} matches[/green] | [dim]/ Search  Tab Switch  j/k Navigate  m Manager{back_hint}  q Quit[/dim]")
-        else:
-            status.update(f"[green]{len(self.all_employees)} employees[/green] | [dim]/ Search  Tab Switch  j/k Navigate  m Manager{back_hint}  q Quit[/dim]")
-
-    def update_list(self) -> None:
-        """Update the employee list."""
-        list_view = self.query_one("#employee-list", EmployeeList)
-        list_view.clear()
-        for emp in self.filtered_employees[:100]:  # Limit to 100 for performance
-            list_view.append(EmployeeItem(emp))
-
-    def update_reports_list(self, employee) -> None:
-        """Update the direct reports list."""
-        reports_list = self.query_one("#reports-list", ReportsList)
-        reports_list.clear()
-
-        if not employee:
+    def refresh_reports(self):
+        lst = self.query_one("#reports", EmpList)
+        lst.clear()
+        title = self.query_one("#reports-title", Static)
+        if not self.current:
+            title.update("[bold]Direct Reports[/bold]")
             return
+        reports = find_reports(self.current, self.all_emps)
+        title.update(f"[bold]Direct Reports[/bold] ({len(reports)})" if reports else "[bold]Direct Reports[/bold] [dim](none)[/dim]")
+        for e in reports:
+            lst.append(EmpItem(e, self.lists["title"].get(str(get_field(e, "work.title") or ""), "")))
 
-        direct_reports = find_direct_report_employees(employee, self.all_employees)
-        reports_header = self.query_one("#reports-header", Static)
-
-        if direct_reports:
-            reports_header.update(f"[bold]Direct Reports[/bold] ({len(direct_reports)})")
-            for emp in direct_reports:
-                reports_list.append(ReportItem(emp, self.lists))
-        else:
-            reports_header.update("[bold]Direct Reports[/bold] [dim](none)[/dim]")
-
-    def select_employee(self, employee, add_to_history=True) -> None:
-        """Select and display an employee."""
-        if add_to_history and self.current_employee:
-            self.history.append(self.current_employee)
-
-        self.current_employee = employee
-
-        detail = self.query_one("#employee-detail", EmployeeDetail)
-        detail.set_employee(employee, self.all_employees, self.lists)
-        self.update_reports_list(employee)
+    def show_employee(self, emp, add_history=True):
+        if add_history and self.current:
+            self.history.append(self.current)
+        self.current = emp
+        self.refresh_detail()
+        self.refresh_reports()
         self.update_status()
 
-    def on_input_changed(self, event: Input.Changed) -> None:
-        """Handle search input changes."""
-        query = event.value.lower().strip()
-        if not query:
-            self.filtered_employees = self.all_employees
-        else:
-            self.filtered_employees = [
-                emp for emp in self.all_employees
-                if query in (get_field(emp, "displayName") or "").lower()
-                or query in (get_field(emp, "email") or "").lower()
-            ]
-        self.update_list()
+    def refresh_detail(self):
+        detail = self.query_one("#detail", Static)
+        if not self.current:
+            detail.update("[dim]Select an employee[/dim]")
+            return
+        e = self.current
+        name = get_field(e, "displayName") or "Unknown"
+        email = get_field(e, "email") or ""
+        title = self.lists["title"].get(str(get_field(e, "work.title") or get_field(e, "title") or ""), "")
+        dept = self.lists["dept"].get(str(get_field(e, "work.department") or get_field(e, "department") or ""), "")
+        tenure = calc_tenure(get_field(e, "work.startDate") or get_field(e, "startDate") or "")
+        _, mgr_name = find_manager(e, self.all_emps)
+
+        lines = [f"[bold cyan]{name}[/bold cyan]", ""]
+        if email:
+            lines.append(f"[bold]Email[/bold]     {email}")
+        if title:
+            lines.append(f"[bold]Title[/bold]     {title}")
+        if dept:
+            lines.append(f"[bold]Dept[/bold]      {dept}")
+        lines.append(f"[bold]Tenure[/bold]    {tenure}")
+        lines.append(f"[bold]Manager[/bold]   {mgr_name or '[dim]None[/dim]'}")
+        detail.update("\n".join(lines))
+
+    def on_input_changed(self, event):
+        q = event.value.lower().strip()
+        self.filtered = [e for e in self.all_emps if q in (get_field(e, "displayName") or "").lower() or q in (get_field(e, "email") or "").lower()] if q else self.all_emps
+        self.refresh_list()
         self.update_status()
 
-    def on_list_view_selected(self, event: ListView.Selected) -> None:
-        """Handle list item selection."""
-        if isinstance(event.item, EmployeeItem):
-            self.select_employee(event.item.employee)
-        elif isinstance(event.item, ReportItem):
-            self.select_employee(event.item.employee)
+    def on_input_submitted(self, event):
+        self.query_one("#emp-list", EmpList).focus()
 
-    def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
-        """Handle employee highlight (cursor movement)."""
-        # Only auto-show for main employee list, not reports
-        if event.item and isinstance(event.item, EmployeeItem):
-            if event.list_view.id == "employee-list":
-                self.select_employee(event.item.employee, add_to_history=False)
+    def on_list_view_highlighted(self, event):
+        if isinstance(event.item, EmpItem) and event.list_view.id == "emp-list":
+            self.show_employee(event.item.emp, add_history=False)
 
-    def action_focus_search(self) -> None:
-        """Focus the search input."""
+    def on_list_view_selected(self, event):
+        if isinstance(event.item, EmpItem):
+            self.show_employee(event.item.emp)
+            if event.list_view.id == "reports":
+                self.query_one("#reports", EmpList).focus()
+
+    def action_search(self):
         self.query_one("#search-input", Input).focus()
 
-    def action_switch_focus(self) -> None:
-        """Switch focus between employee list and reports list."""
-        employee_list = self.query_one("#employee-list", EmployeeList)
-        reports_list = self.query_one("#reports-list", ReportsList)
+    def action_switch(self):
+        emp_list = self.query_one("#emp-list", EmpList)
+        reports = self.query_one("#reports", EmpList)
+        (reports if emp_list.has_focus else emp_list).focus()
 
-        if employee_list.has_focus:
-            reports_list.focus()
-        else:
-            employee_list.focus()
-
-    def action_go_back(self) -> None:
-        """Go back to previously viewed employee."""
+    def action_back(self):
         if self.history:
-            prev_employee = self.history.pop()
-            self.current_employee = prev_employee
-            detail = self.query_one("#employee-detail", EmployeeDetail)
-            detail.set_employee(prev_employee, self.all_employees, self.lists)
-            self.update_reports_list(prev_employee)
+            self.current = self.history.pop()
+            self.refresh_detail()
+            self.refresh_reports()
             self.update_status()
 
-    def action_goto_manager(self) -> None:
-        """Navigate to the current employee's manager."""
-        if not self.current_employee:
-            return
+    def action_manager(self):
+        if self.current:
+            mgr, _ = find_manager(self.current, self.all_emps)
+            if mgr:
+                self.show_employee(mgr)
 
-        manager = find_manager_employee(self.current_employee, self.all_employees)
-        if manager and not manager.get("_synthetic"):
-            self.select_employee(manager)
-
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Handle Enter in search - focus the list."""
-        list_view = self.query_one("#employee-list", EmployeeList)
-        list_view.focus()
+    def action_copy(self):
+        if self.current:
+            email = get_field(self.current, "email")
+            if email and copy_to_clipboard(email):
+                self.query_one("#status", Static).update(f"[green]Copied:[/green] {email}")
 
 
 def main():
-    # Check for command line argument for non-interactive mode
     if len(sys.argv) > 1:
-        # Fall back to simple mode
-        query = " ".join(sys.argv[1:])
-        user_id, token = load_credentials()
-        if not user_id or not token:
-            print("Error: Credentials not configured. Edit ~/.config/hibob/credentials")
-            sys.exit(1)
-
         from rich.console import Console
-        from rich.panel import Panel
-        from rich import box
-
+        query = " ".join(sys.argv[1:])
+        uid, tok = load_credentials()
+        if not uid:
+            print("Error: Configure ~/.config/hibob/credentials")
+            sys.exit(1)
         console = Console()
-        with console.status(f"Searching for '{query}'..."):
-            all_employees = fetch_all_employees(user_id, token)
-            lists = {
-                "title": fetch_named_list(user_id, token, "title"),
-                "department": fetch_named_list(user_id, token, "department"),
-            }
-
-        query_lower = query.lower()
-        matches = [
-            emp for emp in all_employees
-            if query_lower in (get_field(emp, "displayName") or "").lower()
-            or query_lower in (get_field(emp, "email") or "").lower()
-        ]
-
+        with console.status(f"Searching '{query}'..."):
+            emps = fetch_all_employees(uid, tok)
+            lists = {"title": fetch_named_list(uid, tok, "title"), "dept": fetch_named_list(uid, tok, "department")}
+        matches = [e for e in emps if query.lower() in (get_field(e, "displayName") or "").lower() or query.lower() in (get_field(e, "email") or "").lower()]
         if not matches:
-            console.print(f"[yellow]No employees found matching '{query}'[/yellow]")
+            console.print(f"[yellow]No matches for '{query}'[/yellow]")
             sys.exit(0)
-
-        console.print(f"\n[green]Found {len(matches)} employee(s)[/green]\n")
-        for emp in matches:
-            name = get_field(emp, "displayName") or "Unknown"
-            email = get_field(emp, "email") or "Unknown"
-            title_raw = get_field(emp, "work.title") or get_field(emp, "title") or ""
-            department_raw = get_field(emp, "work.department") or get_field(emp, "department") or ""
-            title = lists.get("title", {}).get(str(title_raw), title_raw) if title_raw else ""
-            department = lists.get("department", {}).get(str(department_raw), department_raw) if department_raw else ""
-            start_date = get_field(emp, "work.startDate") or get_field(emp, "startDate") or ""
-            tenure = calculate_tenure(start_date)
-            manager = find_manager(emp, all_employees)
-            direct_reports = find_direct_reports(emp, all_employees)
-
-            lines = []
-            lines.append(f"[bold cyan]Email:[/bold cyan] {email}")
-            if title:
-                lines.append(f"[bold cyan]Title:[/bold cyan] {title}")
-            if department:
-                lines.append(f"[bold cyan]Department:[/bold cyan] {department}")
-            lines.append(f"[bold cyan]Tenure:[/bold cyan] {tenure}")
-            if manager:
-                lines.append(f"[bold cyan]Reports to:[/bold cyan] {manager}")
-            else:
-                lines.append(f"[bold cyan]Reports to:[/bold cyan] [dim]None (top level)[/dim]")
-            if direct_reports:
-                lines.append(f"[bold cyan]Direct reports:[/bold cyan] ({len(direct_reports)})")
-                for report in direct_reports:
-                    lines.append(f"  [dim]•[/dim] {report}")
-            else:
-                lines.append(f"[bold cyan]Direct reports:[/bold cyan] [dim]None[/dim]")
-
-            console.print(Panel("\n".join(lines), title=f"[bold white]{name}[/bold white]", box=box.ROUNDED, padding=(1, 2)))
+        console.print(f"\n[green]Found {len(matches)}[/green]\n")
+        for e in matches:
+            name = get_field(e, "displayName") or "Unknown"
+            email = get_field(e, "email") or ""
+            title = lists["title"].get(str(get_field(e, "work.title") or ""), "")
+            dept = lists["dept"].get(str(get_field(e, "work.department") or ""), "")
+            tenure = calc_tenure(get_field(e, "work.startDate") or "")
+            _, mgr = find_manager(e, emps)
+            reports = [get_field(r, "displayName") for r in find_reports(e, emps)]
+            lines = [f"[cyan]Email:[/cyan] {email}"]
+            if title: lines.append(f"[cyan]Title:[/cyan] {title}")
+            if dept: lines.append(f"[cyan]Dept:[/cyan] {dept}")
+            lines.append(f"[cyan]Tenure:[/cyan] {tenure}")
+            lines.append(f"[cyan]Manager:[/cyan] {mgr or 'None'}")
+            if reports:
+                lines.append(f"[cyan]Reports:[/cyan] ({len(reports)})")
+                lines.extend(f"  • {r}" for r in reports)
+            console.print(Panel("\n".join(lines), title=f"[bold]{name}[/bold]", box=box.ROUNDED))
             console.print()
     else:
-        # Interactive TUI mode
-        app = HiBobApp()
-        app.run()
+        HiBobApp().run()
 
 
 if __name__ == "__main__":
