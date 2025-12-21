@@ -243,7 +243,7 @@ class HiBobApp(App):
 
     def compose(self):
         yield Container(
-            Static("[white on #E8164F] Hi [/white on #E8164F] [bold white]HiBob Employee Search[/bold white]", id="header-content"),
+            Static("[bold white]HiBob Employee Search[/bold white]", id="header-content"),
             id="header"
         )
         yield Container(Input(placeholder="Search...", id="search-input"), id="search")
