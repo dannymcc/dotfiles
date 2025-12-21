@@ -100,8 +100,8 @@ backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/style.css" "$HOME/.config/way
 
 # Elephant (Walker websearch)
 info "Installing elephant config..."
-backup_and_link "$SCRIPT_DIR/elephant/.config/elephant/websearch.toml" "$HOME/.config/elephant/websearch.toml"
-mkdir -p "$HOME/.local/share/icons"
+mkdir -p "$HOME/.config/elephant" "$HOME/.local/share/icons"
+sed "s|/home/[^/]*/|$HOME/|g" "$SCRIPT_DIR/elephant/.config/elephant/websearch.toml" > "$HOME/.config/elephant/websearch.toml"
 cp -n "$SCRIPT_DIR/elephant/.local/share/icons/provet.png" "$HOME/.local/share/icons/" 2>/dev/null || true
 
 # Web apps
