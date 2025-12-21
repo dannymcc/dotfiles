@@ -54,6 +54,20 @@ echo "  Omarchy Config Installer"
 echo "================================"
 echo
 
+# Install required packages
+info "Checking required packages..."
+PACKAGES="wttrbar blueberry"
+MISSING=""
+for pkg in $PACKAGES; do
+    if ! pacman -Qi "$pkg" &>/dev/null; then
+        MISSING="$MISSING $pkg"
+    fi
+done
+if [[ -n "$MISSING" ]]; then
+    info "Installing missing packages:$MISSING"
+    yay -S --noconfirm $MISSING
+fi
+
 # Bash
 info "Installing bash config..."
 backup_and_link "$SCRIPT_DIR/bash/.bashrc" "$HOME/.bashrc"

@@ -30,6 +30,12 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
   - Vim-style pane navigation (h/j/k/l)
   - Split with `|` and `-`
 
+- **waybar/** - Waybar status bar config
+  - Floating bar style with rounded corners
+  - Based on [Adsovetzky's Waybar](https://github.com/cazador11/Adsovetzky-Omarchy-s-Waybar/tree/main/waybar-1.3c.2)
+  - Modules: workspaces, clock, mpris, weather, network, bluetooth, audio, cpu, battery
+  - Requires: `wttrbar`, `blueberry`
+
 - **applications/** - Web app shortcuts
   - ChatGPT, Discord, GitHub, YouTube
 
