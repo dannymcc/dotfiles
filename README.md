@@ -33,8 +33,8 @@ Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
 - **waybar/** - Waybar status bar config
   - Floating bar style with rounded corners
   - Based on [Adsovetzky's Waybar](https://github.com/cazador11/Adsovetzky-Omarchy-s-Waybar/tree/main/waybar-1.3c.2)
-  - Modules: workspaces, clock, mpris, weather, network, bluetooth, audio, cpu, battery
-  - Requires: `wttrbar`, `blueberry`
+  - Modules: workspaces, clock, mpris, network, bluetooth, audio, battery
+  - Requires: `blueberry`
 
 - **applications/** - Web app shortcuts
   - ChatGPT, Discord, GitHub, YouTube

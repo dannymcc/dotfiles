@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="wttrbar blueberry"
+PACKAGES="blueberry"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then

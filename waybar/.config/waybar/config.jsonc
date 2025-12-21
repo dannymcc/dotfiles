@@ -131,7 +131,7 @@
       "transition-duration": 600,
       "children-class": "tray-group-item"
     },
-    "modules": ["custom/expand-icon", "tray", "memory", "custom/weather"]
+    "modules": ["custom/expand-icon", "tray", "memory"]
   },
   "custom/expand-icon": {
     "format": " ",
@@ -151,13 +151,6 @@
     "format": " {used:0.1f}gb",
     "interval": 2,
     "on-click": "$TERMINAL -e btop"
-  },
-  "custom/weather": {
-    "format": "{}",
-    "tooltip": true,
-    "interval": 600,
-    "exec": "wttrbar",
-    "return-type": "json"
   },
   "mpris": {
     "format": "{player_icon} {artist} - {title}",
