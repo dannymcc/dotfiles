@@ -81,6 +81,23 @@ info "Installing hyprland configs..."
 backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/bindings.conf" "$HOME/.config/hypr/bindings.conf"
 backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/input.conf" "$HOME/.config/hypr/input.conf"
 
+# Hyprland app-specific configs
+info "Installing hyprland app configs..."
+mkdir -p "$HOME/.config/hypr/apps"
+for appconf in "$SCRIPT_DIR/hypr/.config/hypr/apps"/*.conf; do
+    [[ -f "$appconf" ]] || continue
+    backup_and_link "$appconf" "$HOME/.config/hypr/apps/$(basename "$appconf")"
+done
+
+# Add source line for custom apps if not already present
+HYPRLAND_CONF="$HOME/.config/hypr/hyprland.conf"
+if [[ -f "$HYPRLAND_CONF" ]] && ! grep -q "source.*apps/archnote.conf" "$HYPRLAND_CONF"; then
+    info "Adding archnote config to hyprland.conf..."
+    echo "" >> "$HYPRLAND_CONF"
+    echo "# Custom app window rules" >> "$HYPRLAND_CONF"
+    echo "source = ~/.config/hypr/apps/archnote.conf" >> "$HYPRLAND_CONF"
+fi
+
 # Custom scripts
 info "Installing custom scripts..."
 backup_and_link "$SCRIPT_DIR/scripts/.local/share/omarchy/bin/omarchy-hyprland-window-center" "$HOME/.local/share/omarchy/bin/omarchy-hyprland-window-center"
