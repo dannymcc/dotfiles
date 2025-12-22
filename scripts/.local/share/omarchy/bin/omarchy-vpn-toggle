@@ -12,11 +12,6 @@ set_vpn_connected_style() {
 * {
   background-color: #3d1f1f;
 }
-
-/* Hide wifi network name when VPN is active */
-#network label {
-  font-size: 0;
-}
 EOF
 }
 

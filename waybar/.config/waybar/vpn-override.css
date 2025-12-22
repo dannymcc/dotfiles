@@ -1,1 +1,4 @@
-/* VPN disconnected - normal styling */
+/* VPN connected - dark red background */
+* {
+  background-color: #3d1f1f;
+}

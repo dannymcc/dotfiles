@@ -33,16 +33,11 @@ fi
 
 # Check if connection succeeded
 if [[ -n "$(ip link show type wireguard 2>/dev/null)" ]]; then
-  # Update waybar styling to dark red and hide wifi name
+  # Update waybar styling to dark red
   cat > "$VPN_CSS" << 'EOF'
 /* VPN connected - dark red background */
 * {
   background-color: #3d1f1f;
-}
-
-/* Hide wifi network name when VPN is active */
-#network label {
-  font-size: 0;
 }
 EOF
 
