@@ -2,7 +2,7 @@
 Version=1.0
 Name=HiBob Search
 Comment=Search HiBob employees
-Exec=xdg-terminal-exec --app-id=TUI.float -e hibob-search
+Exec=xdg-terminal-exec --app-id=TUI.float -e hibob-tui
 Terminal=false
 Type=Application
 Icon=/home/danny/.local/share/applications/icons/hibob.png
