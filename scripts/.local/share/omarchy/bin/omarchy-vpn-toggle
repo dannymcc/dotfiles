@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Toggle Wireguard VPN connection and update waybar styling
+
+export PATH="/usr/bin:/bin:$PATH"
+VPN_CSS="$HOME/.config/waybar/vpn-override.css"
+WG_DIR="/etc/wireguard"
+
+set_vpn_connected_style() {
+  cat > "$VPN_CSS" << 'EOF'
+/* VPN connected - dark red background */
+* {
+  background-color: #3d1f1f;
+}
+
+/* Hide wifi network name when VPN is active */
+#network label {
+  font-size: 0;
+}
+EOF
+}
+
+set_vpn_disconnected_style() {
+  cat > "$VPN_CSS" << 'EOF'
+/* VPN disconnected - normal styling */
+EOF
+}
+
+restart_waybar() {
+  pkill waybar 2>/dev/null
+  sleep 0.5
+  setsid hyprctl dispatch exec waybar &>/dev/null &
+}
+
+# Check if wireguard is connected
+if [[ -n "$(ip link show type wireguard 2>/dev/null)" ]]; then
+  # Get current interface name
+  WG_INTERFACE=$(ip link show type wireguard 2>/dev/null | head -1 | awk -F': ' '{print $2}')
+
+  # Disconnect
+  if sudo wg-quick down "$WG_INTERFACE"; then
+    set_vpn_disconnected_style
+    notify-send "Wireguard" "Disconnected from $WG_INTERFACE" -i network-vpn-disconnected
+    restart_waybar
+  else
+    notify-send "Wireguard" "Failed to disconnect" -i network-vpn
+    exit 1
+  fi
+else
+  # Find the first wireguard config file
+  WG_CONFIG=$(ls "$WG_DIR"/*.conf 2>/dev/null | head -1 | xargs -r basename 2>/dev/null)
+  WG_CONFIG="${WG_CONFIG%.conf}"
+
+  if [[ -z "$WG_CONFIG" ]]; then
+    notify-send "Wireguard" "No config found in $WG_DIR" -i network-vpn-disconnected
+    exit 1
+  fi
+
+  # Fix resolvconf before connecting (required for first connect)
+  sudo resolvconf -u 2>/dev/null
+  sleep 0.2
+
+  # Connect
+  if sudo wg-quick up "$WG_CONFIG" 2>/dev/null; then
+    set_vpn_connected_style
+    notify-send "Wireguard" "Connected to $WG_CONFIG" -i network-vpn
+    restart_waybar
+  else
+    notify-send "Wireguard" "Failed to connect" -i network-vpn-disconnected
+    exit 1
+  fi
+fi

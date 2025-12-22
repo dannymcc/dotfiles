@@ -14,6 +14,7 @@
   "modules-right": [
     "mpris",
     "group/tray-expander",
+    "custom/vpn",
     "network",
     "bluetooth",
     "pulseaudio",
@@ -85,6 +86,15 @@
     "interval": 3,
     "spacing": 1,
     "on-click": "omarchy-launch-wifi"
+  },
+  "custom/vpn": {
+    "format": "{}",
+    "exec": "~/.config/waybar/indicators/wireguard-status.sh",
+    "on-click": "omarchy-vpn-toggle",
+    "on-click-right": "omarchy-menu-vpn",
+    "return-type": "json",
+    "interval": 5,
+    "signal": 9
   },
   "battery": {
     "format": "{capacity}% {icon}",

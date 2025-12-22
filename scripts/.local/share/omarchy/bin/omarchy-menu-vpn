@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# VPN Menu for Omarchy
+# Provides connect/disconnect/status options for Wireguard VPN
+
+menu() {
+  local prompt="$1"
+  local options="$2"
+  echo -e "$options" | omarchy-launch-walker --dmenu --width 295 --minheight 1 --maxheight 630 -p "$prompt…" 2>/dev/null
+}
+
+is_connected() {
+  ip link show type wireguard &>/dev/null
+}
+
+get_wg_config() {
+  local conf_file
+  conf_file=$(sudo ls /etc/wireguard/*.conf 2>/dev/null | head -1)
+  if [[ -n "$conf_file" ]]; then
+    basename "$conf_file" .conf
+  fi
+}
+
+WG_CONFIG=$(get_wg_config)
+
+if is_connected; then
+  WG_INTERFACE=$(ip link show type wireguard 2>/dev/null | head -1 | awk -F': ' '{print $2}')
+  VPN_IP=$(ip -4 addr show "$WG_INTERFACE" 2>/dev/null | grep -oP '(?<=inet\s)\d+\.\d+\.\d+\.\d+')
+  STATUS_LINE="󰌆  Connected ($VPN_IP)"
+  OPTIONS="󰌊  Disconnect\n  Status"
+else
+  STATUS_LINE="󰌉  Disconnected"
+  OPTIONS="󰌆  Connect\n  Status"
+fi
+
+case $(menu "VPN" "$OPTIONS") in
+*Connect*|*Disconnect*)
+  omarchy-vpn-toggle
+  ;;
+*Status*)
+  omarchy-launch-floating-terminal-with-presentation omarchy-vpn-status
+  ;;
+esac

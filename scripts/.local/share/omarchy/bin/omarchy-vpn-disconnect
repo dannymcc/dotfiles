@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Disconnect from Wireguard VPN and reset waybar styling
+
+VPN_CSS="$HOME/.config/waybar/vpn-override.css"
+
+# Check if connected
+WG_INTERFACE=$(ip link show type wireguard 2>/dev/null | head -1 | awk -F': ' '{print $2}')
+
+if [[ -z "$WG_INTERFACE" ]]; then
+  notify-send "Wireguard" "Not connected" -i network-vpn-disconnected
+  exit 0
+fi
+
+# Disconnect from VPN
+if sudo wg-quick down "$WG_INTERFACE"; then
+  # Reset waybar styling
+  cat > "$VPN_CSS" << 'EOF'
+/* VPN disconnected - normal styling */
+EOF
+
+  notify-send "Wireguard" "Disconnected from $WG_INTERFACE" -i network-vpn-disconnected
+
+  # Restart waybar to apply styling
+  pkill -9 waybar
+  sleep 0.2
+  hyprctl dispatch exec waybar &>/dev/null
+else
+  notify-send "Wireguard" "Failed to disconnect" -i network-vpn
+  exit 1
+fi

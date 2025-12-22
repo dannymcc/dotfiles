@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Show Wireguard VPN status
+
+WG_INTERFACE=$(ip link show type wireguard 2>/dev/null | head -1 | awk -F': ' '{print $2}')
+
+if [[ -n "$WG_INTERFACE" ]]; then
+  echo "Wireguard VPN: Connected"
+  echo "Interface: $WG_INTERFACE"
+  echo ""
+  sudo wg show "$WG_INTERFACE"
+else
+  echo "Wireguard VPN: Disconnected"
+fi

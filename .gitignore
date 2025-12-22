@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+
+# Wireguard configs (contain private keys - NEVER commit)
+wg*.conf
+**/wireguard/*.conf

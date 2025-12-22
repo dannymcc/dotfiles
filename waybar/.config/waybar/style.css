@@ -5,7 +5,7 @@
   color: @foreground;
 
   border: none;
-  border-radius: 10px;
+  border-radius: 0;
   padding: 2px 2px;
   min-height: 0;
   font-family: CaskaydiaMono Nerd Font;
@@ -39,6 +39,7 @@
 #bluetooth,
 #pulseaudio,
 #custom-omarchy,
+#custom-vpn,
 #custom-screenrecording-indicator,
 #custom-update {
   min-width: 12px;
@@ -73,6 +74,17 @@ tooltip {
   color: #a55555;
 }
 
+#custom-vpn.connected {
+  color: #a6e3a1;
+}
+
+#custom-vpn.disconnected {
+  opacity: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
 
 /* EXTRA FIX! */
 
@@ -86,3 +98,6 @@ tooltip {
 tooltip {
   border-radius: 10px;
 }
+
+/* VPN override - must be last to take precedence */
+@import "vpn-override.css";
