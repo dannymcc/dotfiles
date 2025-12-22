@@ -1,0 +1,2 @@
+# ThinkPad lid logo LED - on when charging, off otherwise
+ACTION=="add", SUBSYSTEM=="leds", KERNEL=="tpacpi::lid_logo_dot", ATTR{trigger}="BAT0-charging"

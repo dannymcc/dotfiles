@@ -158,6 +158,15 @@ else
     warn "Nord theme not found, skipping wallpapers"
 fi
 
+# ThinkPad LED config (if on ThinkPad)
+if [[ -d /sys/class/leds/tpacpi::lid_logo_dot ]]; then
+    info "Installing ThinkPad LED config..."
+    sudo cp "$SCRIPT_DIR/thinkpad/etc/udev/rules.d/99-thinkpad-led.rules" /etc/udev/rules.d/
+    sudo udevadm control --reload-rules
+    echo "BAT0-charging" | sudo tee /sys/class/leds/tpacpi::lid_logo_dot/trigger > /dev/null
+    info "ThinkPad lid LED set to: on when charging"
+fi
+
 echo
 info "Installation complete!"
 echo
