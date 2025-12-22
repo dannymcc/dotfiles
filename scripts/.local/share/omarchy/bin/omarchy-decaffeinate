@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PIDFILE="$HOME/.cache/omarchy-caffeinate.pid"
+STATEFILE="$HOME/.cache/omarchy-caffeinate.state"
+
+# Check if caffeinated
+if [ ! -f "$PIDFILE" ]; then
+    notify-send -u low "Decaffeinate" "System is not caffeinated"
+    exit 0
+fi
+
+# Kill the systemd-inhibit process
+PID=$(cat "$PIDFILE")
+if kill -0 "$PID" 2>/dev/null; then
+    kill "$PID"
+fi
+
+rm -f "$PIDFILE" "$STATEFILE"
+
+# Restart hypridle
+pgrep hypridle || hypridle &
+
+notify-send -u normal "Decaffeinate" "Normal sleep settings restored"

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Decaffeinate
+Comment=Restore normal sleep settings
+Exec=omarchy-decaffeinate
+Icon=caffeine-cup-empty
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=sleep;restore;caffeine;normal;

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Caffeinate
+Comment=Keep system awake and prevent sleep
+Exec=omarchy-caffeinate
+Icon=caffeine-cup-full
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=awake;sleep;prevent;caffeine;

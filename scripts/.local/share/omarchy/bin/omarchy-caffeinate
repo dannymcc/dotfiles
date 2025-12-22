@@ -1,0 +1,28 @@
+#!/bin/bash
+
+PIDFILE="$HOME/.cache/omarchy-caffeinate.pid"
+STATEFILE="$HOME/.cache/omarchy-caffeinate.state"
+
+# Check if already caffeinated
+if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+    notify-send -u low "Caffeinate" "Already caffeinated"
+    exit 0
+fi
+
+# Stop hypridle to prevent screen timeout/lock/dpms
+pkill hypridle
+
+# Ensure screen is on
+hyprctl dispatch dpms on
+
+# Start systemd-inhibit in background to prevent sleep/suspend/hibernate
+systemd-inhibit --what=idle:sleep:handle-lid-switch \
+    --who="Caffeinate" \
+    --why="User requested system stay awake" \
+    --mode=block \
+    sleep infinity &
+
+echo $! > "$PIDFILE"
+echo "caffeinated" > "$STATEFILE"
+
+notify-send -u normal "Caffeinate" "System will stay awake"
