@@ -4,3 +4,7 @@ __pycache__/
 # Wireguard configs (contain private keys - NEVER commit)
 wg*.conf
 **/wireguard/*.conf
+
+# Credentials (only commit .example files)
+**/credentials
+!**/credentials.example

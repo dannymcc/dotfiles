@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard"
+PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -100,7 +100,10 @@ fi
 
 # Custom scripts
 info "Installing custom scripts..."
-backup_and_link "$SCRIPT_DIR/scripts/.local/share/omarchy/bin/omarchy-hyprland-window-center" "$HOME/.local/share/omarchy/bin/omarchy-hyprland-window-center"
+for script in "$SCRIPT_DIR/scripts/.local/share/omarchy/bin"/omarchy-*; do
+    [[ -f "$script" ]] || continue
+    backup_and_link "$script" "$HOME/.local/share/omarchy/bin/$(basename "$script")"
+done
 
 # Claude Code
 info "Installing claude config..."
@@ -114,6 +117,9 @@ backup_and_link "$SCRIPT_DIR/tmux/.config/tmux/tmux.conf" "$HOME/.config/tmux/tm
 info "Installing waybar config..."
 backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/config.jsonc" "$HOME/.config/waybar/config.jsonc"
 backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/style.css" "$HOME/.config/waybar/style.css"
+backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/vpn-override.css" "$HOME/.config/waybar/vpn-override.css"
+mkdir -p "$HOME/.config/waybar/indicators"
+backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/indicators/wireguard-status.sh" "$HOME/.config/waybar/indicators/wireguard-status.sh"
 
 # Elephant (Walker websearch)
 info "Installing elephant config..."
@@ -136,11 +142,9 @@ done
 # Copy icons
 cp -n "$APPS_SRC/icons/"*.png "$APPS_DEST/icons/" 2>/dev/null || true
 
-# HiBob Search
-info "Installing hibob-search..."
-mkdir -p "$HOME/.local/bin"
-backup_and_link "$SCRIPT_DIR/scripts/hibob-search/hibob-search" "$HOME/.local/bin/hibob-search"
+# HiBob Search credentials
 if [[ ! -f "$HOME/.config/hibob/credentials" ]]; then
+    info "Setting up hibob-tui credentials..."
     mkdir -p "$HOME/.config/hibob"
     cp "$SCRIPT_DIR/scripts/hibob-search/credentials.example" "$HOME/.config/hibob/credentials"
     chmod 600 "$HOME/.config/hibob/credentials"
