@@ -9,7 +9,7 @@
   "margin-left": 10,
   "margin-right": 10,
 
-  "modules-left": ["custom/omarchy", "hyprland/workspaces", "hyprland/window"],
+  "modules-left": ["custom/omarchy", "hyprland/workspaces"],
   "modules-center": ["clock", "custom/update", "custom/screenrecording-indicator"],
   "modules-right": [
     "mpris",
@@ -18,6 +18,7 @@
     "network",
     "bluetooth",
     "pulseaudio",
+    "custom/power-profile",
     "battery"
   ],
   "hyprland/workspaces": {
@@ -96,6 +97,13 @@
     "interval": 5,
     "signal": 9
   },
+  "custom/power-profile": {
+    "format": "{}",
+    "exec": "~/.config/waybar/indicators/power-profile.sh",
+    "return-type": "json",
+    "interval": 5,
+    "on-click": "omarchy-menu power"
+  },
   "battery": {
     "format": "{capacity}% {icon}",
     "format-discharging": "{capacity}% {icon}",
@@ -173,8 +181,5 @@
       "paused": "⏸"
     },
     "max-length": 50
-  },
-  "hyprland/window": {
-    "format": "{}"
   }
 }

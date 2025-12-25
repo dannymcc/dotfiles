@@ -31,7 +31,7 @@
   opacity: 0.5;
 }
 
-#backlight, #custom-weather, #memory, #mpris, #window,
+#backlight, #custom-weather, #memory, #mpris,
 #tray,
 #cpu,
 #battery,
@@ -40,6 +40,7 @@
 #pulseaudio,
 #custom-omarchy,
 #custom-vpn,
+#custom-power-profile,
 #custom-screenrecording-indicator,
 #custom-update {
   min-width: 12px;
@@ -83,6 +84,21 @@ tooltip {
   min-width: 0;
   margin: 0;
   padding: 0;
+}
+
+#custom-power-profile.balanced {
+  opacity: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#custom-power-profile.performance {
+  color: #f38ba8;
+}
+
+#custom-power-profile.power-saver {
+  color: #a6e3a1;
 }
 
 
