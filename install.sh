@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui"
+PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -66,6 +66,17 @@ done
 if [[ -n "$MISSING" ]]; then
     info "Installing missing packages:$MISSING"
     yay -S --noconfirm $MISSING
+fi
+
+# British English locale
+info "Configuring British English locale..."
+if ! grep -q "^en_GB.UTF-8 UTF-8" /etc/locale.gen; then
+    sudo sed -i 's/#en_GB.UTF-8 UTF-8/en_GB.UTF-8 UTF-8/' /etc/locale.gen
+    sudo locale-gen
+fi
+if ! grep -q "LANG=en_GB.UTF-8" /etc/locale.conf 2>/dev/null; then
+    sudo sh -c 'echo "LANG=en_GB.UTF-8" > /etc/locale.conf'
+    warn "Locale changed to British English - reboot required for full effect"
 fi
 
 # Bash
