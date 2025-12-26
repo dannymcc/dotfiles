@@ -1,20 +1,22 @@
-# If not running interactively, don't do anything (leave this at the top of this file)
+# If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
-# Auto-launch zsh shell if available
-if command -v zsh &> /dev/null; then
-  if [[ $(ps --no-header --pid=$PPID --format=comm) != "zsh" && -z ${BASH_EXECUTION_STRING} && ${SHLVL} == 1 ]]
-  then
-    shopt -q login_shell && LOGIN_OPTION='--login' || LOGIN_OPTION=''
-    exec zsh $LOGIN_OPTION
-  fi
+# Load omarchy-zsh configuration
+if [[ -d /usr/share/omarchy-zsh/conf.d ]]; then
+  for config in /usr/share/omarchy-zsh/conf.d/*.zsh; do
+    [[ -f "$config" ]] && source "$config"
+  done
 fi
 
-# All the default Omarchy aliases and functions
-# (don't mess with these directly, just overwrite them here!)
-source ~/.local/share/omarchy/default/bash/rc
+# Load omarchy-zsh functions and aliases
+if [[ -d /usr/share/omarchy-zsh/functions ]]; then
+  for func in /usr/share/omarchy-zsh/functions/*.zsh; do
+    [[ -f "$func" ]] && source "$func"
+  done
+fi
 
-# Fallback aliases (if zsh not available)
+# Add your own customizations below
+
 # PATH entries
 export PATH="$HOME/.local/bin:$HOME/.local/share/omarchy/bin:$PATH"
 
@@ -58,5 +60,10 @@ function dotpull {
 
 # Load mise (if installed)
 if command -v mise &> /dev/null; then
-    eval "$(mise activate bash)"
+    eval "$(mise activate zsh)"
+fi
+
+# Starship prompt
+if command -v starship &> /dev/null; then
+    eval "$(starship init zsh)"
 fi

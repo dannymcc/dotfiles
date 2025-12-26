@@ -8,3 +8,7 @@ wg*.conf
 # Credentials (only commit .example files)
 **/credentials
 !**/credentials.example
+
+# Weechat logs and temp files
+weechat/.config/weechat/logs/
+weechat/.config/weechat/*.log

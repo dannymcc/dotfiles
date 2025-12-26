@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb weechat"
+PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb weechat omarchy-zsh"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -82,6 +82,10 @@ fi
 # Bash
 info "Installing bash config..."
 backup_and_link "$SCRIPT_DIR/bash/.bashrc" "$HOME/.bashrc"
+
+# Zsh
+info "Installing zsh config..."
+backup_and_link "$SCRIPT_DIR/zsh/.zshrc" "$HOME/.zshrc"
 
 # Git
 info "Installing git config..."
@@ -145,6 +149,8 @@ APPS_DEST="$HOME/.local/share/applications"
 mkdir -p "$APPS_DEST/icons"
 for desktop in "$APPS_SRC"/*.desktop; do
     [[ -f "$desktop" ]] || continue
+    # Skip empty files (0 bytes)
+    [[ -s "$desktop" ]] || { warn "Skipping empty file: $desktop"; continue; }
     name=$(basename "$desktop")
     # Copy and fix paths for this system
     sed "s|/home/[^/]*/|$HOME/|g" "$desktop" > "$APPS_DEST/$name"
@@ -187,11 +193,19 @@ if [[ -d /sys/class/leds/tpacpi::lid_logo_dot ]]; then
     info "ThinkPad lid LED set to: on when charging"
 fi
 
+# Setup zsh as default shell
+info "Setting up zsh..."
+if command -v zsh &>/dev/null; then
+    if [[ "$SHELL" != "$(which zsh)" ]]; then
+        info "Run 'omarchy-setup-zsh' to set zsh as your default shell"
+    fi
+fi
+
 echo
 info "Installation complete!"
 echo
 echo "Note: You may need to:"
-echo "  - Restart your shell or run: source ~/.bashrc"
+echo "  - Restart your shell (zsh will auto-launch from bash)"
 echo "  - Reload hyprland: hyprctl reload"
 echo "  - Restart elephant: systemctl --user restart elephant"
 echo "  - Configure HiBob credentials: nano ~/.config/hibob/credentials"
