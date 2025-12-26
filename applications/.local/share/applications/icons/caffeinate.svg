@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1b26"/>
+      <stop offset="100%" style="stop-color:#24283b"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="url(#bgGrad)" stroke="#9ece6a" stroke-width="2"/>
+  <!-- Coffee cup -->
+  <path d="M32 45 L32 90 Q32 100 42 100 L78 100 Q88 100 88 90 L88 45 Z" fill="#9ece6a"/>
+  <!-- Cup handle -->
+  <path d="M88 50 Q105 50 105 65 Q105 80 88 80" stroke="#9ece6a" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- Steam lines -->
+  <path d="M45 35 Q50 25 45 15" stroke="#7aa2f7" stroke-width="4" fill="none" stroke-linecap="round">
+    <animate attributeName="d" values="M45 35 Q50 25 45 15;M45 35 Q40 25 45 15;M45 35 Q50 25 45 15" dur="2s" repeatCount="indefinite"/>
+  </path>
+  <path d="M60 35 Q65 25 60 15" stroke="#7aa2f7" stroke-width="4" fill="none" stroke-linecap="round">
+    <animate attributeName="d" values="M60 35 Q65 25 60 15;M60 35 Q55 25 60 15;M60 35 Q65 25 60 15" dur="2s" repeatCount="indefinite" begin="0.3s"/>
+  </path>
+  <path d="M75 35 Q80 25 75 15" stroke="#7aa2f7" stroke-width="4" fill="none" stroke-linecap="round">
+    <animate attributeName="d" values="M75 35 Q80 25 75 15;M75 35 Q70 25 75 15;M75 35 Q80 25 75 15" dur="2s" repeatCount="indefinite" begin="0.6s"/>
+  </path>
+</svg>

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Secure IRC - Launches weechat over VPN
+# Ensures VPN is connected before starting IRC
+
+export PATH="/usr/bin:/bin:$PATH"
+
+# Check if VPN is connected
+if [[ -z "$(ip link show type wireguard 2>/dev/null)" ]]; then
+    # VPN not connected, connect it
+    notify-send "Secure IRC" "Connecting VPN..." -i network-vpn
+    omarchy-vpn-connect
+
+    # Wait for VPN to come up
+    sleep 2
+
+    # Verify VPN connected
+    if [[ -z "$(ip link show type wireguard 2>/dev/null)" ]]; then
+        notify-send "Secure IRC" "VPN connection failed - aborting" -i network-vpn-disconnected
+        exit 1
+    fi
+fi
+
+notify-send "Secure IRC" "VPN connected - launching IRC" -i security-high
+
+# Launch weechat with custom config
+exec weechat -d ~/.config/weechat

@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb"
+PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb weechat"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -152,6 +152,11 @@ for desktop in "$APPS_SRC"/*.desktop; do
 done
 # Copy icons
 cp -n "$APPS_SRC/icons/"*.png "$APPS_DEST/icons/" 2>/dev/null || true
+cp -n "$APPS_SRC/icons/"*.svg "$APPS_DEST/icons/" 2>/dev/null || true
+
+# Weechat (Secure IRC)
+info "Installing weechat config..."
+backup_and_link "$SCRIPT_DIR/weechat/.config/weechat" "$HOME/.config/weechat"
 
 # HiBob Search credentials
 if [[ ! -f "$HOME/.config/hibob/credentials" ]]; then
