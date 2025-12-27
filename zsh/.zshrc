@@ -18,7 +18,7 @@ fi
 # Add your own customizations below
 
 # PATH entries
-export PATH="$HOME/.local/bin:$HOME/.local/share/omarchy/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/omarchy/bin:$HOME/.bun/bin:$PATH"
 
 # Directory shortcuts
 alias projects='cd ~/projects'

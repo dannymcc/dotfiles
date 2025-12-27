@@ -17,18 +17,23 @@
 	mnemonicPrefix = true    # More intuitive refs in diff output
 [commit]
 	verbose = true           # Include diff comment in commit message template
+	gpgsign = true           # Sign commits with SSH key
 [column]
 	ui = auto 			     # Output in columns when possible
 [branch]
 	sort = -committerdate    # Sort branches by most recent commit first
 [tag]
 	sort = -version:refname  # Sort version numbers as you would expect
+	gpgsign = true           # Sign tags with SSH key
 [rerere]
 	enabled = true           # Record and reuse conflict resolutions
 	autoupdate = true        # Apply stored conflict resolutions automatically
 [user]
 	name = Danny McClelland
 	email = danny@dmcc.io
+	signingkey = ~/.ssh/id_ed25519.pub
+[gpg]
+	format = ssh
 [credential "https://github.com"]
 	helper = 
 	helper = !/usr/bin/gh auth git-credential
