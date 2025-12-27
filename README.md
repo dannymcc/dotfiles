@@ -71,6 +71,7 @@ systemctl --user restart elephant
 **hypr/apps/** - Application-specific window rules
 - `archnote.conf` - Floating window, 320x380
 - `plexamp.conf` - Floating window, 420x549, positioned top-right
+- `ostt.conf` - Speech-to-text overlay, bottom-center
 
 ### Custom Scripts
 
@@ -86,6 +87,7 @@ systemctl --user restart elephant
 | `omarchy-menu-vpn` | Walker menu for VPN management |
 | `omarchy-caffeinate` | Prevent system sleep/suspend |
 | `omarchy-decaffeinate` | Restore normal sleep behavior |
+| `omarchy-secure-irc` | Launch weechat IRC client |
 
 **scripts/hibob-search/** - Credentials template for hibob-tui
 
@@ -120,6 +122,19 @@ Caffeinate/decaffeinate prevent the system from sleeping:
 - VPN status indicator (green when connected)
 - Modules: workspaces, clock, mpris, network, bluetooth, audio, battery
 - Requires: `blueberry`
+
+### IRC
+
+**weechat/** - IRC client configuration via ZNC bouncer
+
+The setup uses a ZNC bouncer running on Whatbox for persistent connections:
+- ZNC handles staying connected 24/7 and buffering messages
+- Local weechat connects to ZNC, not directly to IRC networks
+- Passwords stored in weechat's encrypted `sec.conf` (not in git)
+
+Networks: Libera (#archlinux, #archlinux-offtopic, #linux), OFTC (#tor), Whatbox (#whatbox), AAChat (#a&a)
+
+To manage channels, use ZNC's web admin or `/msg *controlpanel` in weechat.
 
 ### Walker
 
@@ -180,6 +195,7 @@ hibob-tui john           # Quick search from command line
 | Super + Shift + Y | YouTube |
 | Super + Shift + G | Signal |
 | Super + Shift + D | Docker |
+| Super + R | Speech-to-text (ostt) |
 | Caps Lock + C | Center window at 60% of screen |
 
 ## Usage
