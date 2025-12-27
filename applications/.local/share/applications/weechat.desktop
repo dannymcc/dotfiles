@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=IRC
+Comment=WeeChat IRC Client (via ZNC)
+Exec=ghostty -e weechat
+Icon=weechat
+Terminal=false
+Type=Application
+Categories=Network;Chat;IRCClient;
+Keywords=irc;chat;weechat;znc;
