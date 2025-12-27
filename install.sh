@@ -95,6 +95,9 @@ backup_and_link "$SCRIPT_DIR/git/.config/git/config" "$HOME/.config/git/config"
 info "Installing hyprland configs..."
 backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/bindings.conf" "$HOME/.config/hypr/bindings.conf"
 backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/input.conf" "$HOME/.config/hypr/input.conf"
+backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/monitors.conf" "$HOME/.config/hypr/monitors.conf"
+backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
+backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/hyprlock.conf" "$HOME/.config/hypr/hyprlock.conf"
 
 # Hyprland app-specific configs
 info "Installing hyprland app configs..."
