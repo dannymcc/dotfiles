@@ -56,7 +56,7 @@ echo
 
 # Install required packages
 info "Checking required packages..."
-PACKAGES="blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb weechat omarchy-zsh"
+PACKAGES="stow blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb weechat omarchy-zsh"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -79,32 +79,44 @@ if ! grep -q "LANG=en_GB.UTF-8" /etc/locale.conf 2>/dev/null; then
     warn "Locale changed to British English - reboot required for full effect"
 fi
 
-# Bash
-info "Installing bash config..."
-backup_and_link "$SCRIPT_DIR/bash/.bashrc" "$HOME/.bashrc"
+# Stow packages (simple symlinks)
+info "Installing configs via stow..."
+STOW_PACKAGES="bash zsh git hypr tmux waybar weechat claude"
 
-# Zsh
-info "Installing zsh config..."
-backup_and_link "$SCRIPT_DIR/zsh/.zshrc" "$HOME/.zshrc"
+# Clean up old manual symlinks that conflict with stow
+cleanup_for_stow() {
+    local pkg="$1"
+    # Handle directory symlinks (e.g., weechat)
+    find "$SCRIPT_DIR/$pkg" -type d | while read -r src; do
+        local rel="${src#$SCRIPT_DIR/$pkg/}"
+        [[ -z "$rel" ]] && continue
+        local dest="$HOME/$rel"
+        if [[ -L "$dest" ]]; then
+            info "  Removing old directory symlink: $dest"
+            rm "$dest"
+        fi
+    done
+    # Handle file symlinks
+    find "$SCRIPT_DIR/$pkg" -type f | while read -r src; do
+        local rel="${src#$SCRIPT_DIR/$pkg/}"
+        local dest="$HOME/$rel"
+        if [[ -L "$dest" ]]; then
+            info "  Removing old symlink: $dest"
+            rm "$dest"
+        elif [[ -e "$dest" ]]; then
+            local backup="${dest}.backup.$(date +%Y%m%d%H%M%S)"
+            warn "  Backing up: $dest -> $backup"
+            mv "$dest" "$backup"
+        fi
+    done
+}
 
-# Git
-info "Installing git config..."
-backup_and_link "$SCRIPT_DIR/git/.config/git/config" "$HOME/.config/git/config"
-
-# Hyprland
-info "Installing hyprland configs..."
-backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/bindings.conf" "$HOME/.config/hypr/bindings.conf"
-backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/input.conf" "$HOME/.config/hypr/input.conf"
-backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/monitors.conf" "$HOME/.config/hypr/monitors.conf"
-backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
-backup_and_link "$SCRIPT_DIR/hypr/.config/hypr/hyprlock.conf" "$HOME/.config/hypr/hyprlock.conf"
-
-# Hyprland app-specific configs
-info "Installing hyprland app configs..."
-mkdir -p "$HOME/.config/hypr/apps"
-for appconf in "$SCRIPT_DIR/hypr/.config/hypr/apps"/*.conf; do
-    [[ -f "$appconf" ]] || continue
-    backup_and_link "$appconf" "$HOME/.config/hypr/apps/$(basename "$appconf")"
+for pkg in $STOW_PACKAGES; do
+    if [[ -d "$SCRIPT_DIR/$pkg" ]]; then
+        cleanup_for_stow "$pkg"
+        info "  Stowing $pkg..."
+        stow -d "$SCRIPT_DIR" -t "$HOME" "$pkg"
+    fi
 done
 
 # Add source line for custom apps if not already present
@@ -122,22 +134,6 @@ for script in "$SCRIPT_DIR/scripts/.local/share/omarchy/bin"/omarchy-*; do
     [[ -f "$script" ]] || continue
     backup_and_link "$script" "$HOME/.local/share/omarchy/bin/$(basename "$script")"
 done
-
-# Claude Code
-info "Installing claude config..."
-backup_and_link "$SCRIPT_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
-
-# Tmux
-info "Installing tmux config..."
-backup_and_link "$SCRIPT_DIR/tmux/.config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
-
-# Waybar
-info "Installing waybar config..."
-backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/config.jsonc" "$HOME/.config/waybar/config.jsonc"
-backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/style.css" "$HOME/.config/waybar/style.css"
-backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/vpn-override.css" "$HOME/.config/waybar/vpn-override.css"
-mkdir -p "$HOME/.config/waybar/indicators"
-backup_and_link "$SCRIPT_DIR/waybar/.config/waybar/indicators/wireguard-status.sh" "$HOME/.config/waybar/indicators/wireguard-status.sh"
 
 # Elephant (Walker websearch)
 info "Installing elephant config..."
@@ -162,10 +158,6 @@ done
 # Copy icons
 cp -n "$APPS_SRC/icons/"*.png "$APPS_DEST/icons/" 2>/dev/null || true
 cp -n "$APPS_SRC/icons/"*.svg "$APPS_DEST/icons/" 2>/dev/null || true
-
-# Weechat (Secure IRC)
-info "Installing weechat config..."
-backup_and_link "$SCRIPT_DIR/weechat/.config/weechat" "$HOME/.config/weechat"
 
 # HiBob Search credentials
 if [[ ! -f "$HOME/.config/hibob/credentials" ]]; then

@@ -11,9 +11,27 @@ cd ~/omarchy-config
 ```
 
 The install script will:
-1. Back up any existing files with a timestamp
-2. Create symlinks from the repo to the correct locations
-3. Install required packages via `yay`
+1. Install required packages via `yay` (including GNU Stow)
+2. Use GNU Stow to symlink dotfile packages to `$HOME`
+3. Handle special cases (path substitution, file copying, system config)
+
+### Structure
+
+This repo uses [GNU Stow](https://www.gnu.org/software/stow/) for dotfile management. Each package directory mirrors the target structure relative to `$HOME`:
+
+```
+omarchy-config/
+├── bash/.bashrc          → ~/.bashrc
+├── zsh/.zshrc            → ~/.zshrc
+├── git/.config/git/      → ~/.config/git/
+├── hypr/.config/hypr/    → ~/.config/hypr/
+├── tmux/.config/tmux/    → ~/.config/tmux/
+├── waybar/.config/waybar/→ ~/.config/waybar/
+├── weechat/.config/weechat/ → ~/.config/weechat/
+└── claude/.claude/       → ~/.claude/
+```
+
+To manually stow a single package: `stow -t ~ <package>`
 
 After installation:
 ```bash
@@ -142,8 +160,8 @@ hibob-tui john           # Quick search from command line
 
 ### Claude Code
 
-**.claude/** - Claude Code configuration
-- `CLAUDE.md` - Global Claude Code preferences
+**claude/** - Claude Code configuration (stow package)
+- `.claude/CLAUDE.md` - Global Claude Code preferences
 
 ### ThinkPad
 
