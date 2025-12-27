@@ -48,18 +48,15 @@ To manually stow a single package: `stow -t ~ <package>`
 
 ## IRC Setup
 
-IRC uses a **ZNC bouncer on Whatbox** with local **Weechat** client.
+IRC uses a **ZNC bouncer** with local **Weechat** client.
 
-### ZNC (Whatbox)
+### ZNC
 
-- Config location: `~/.znc/configs/znc.conf` on whatbox
-- Web admin: https://salak.whatbox.ca:11211
-- Networks: libera, oftc, whatbox, aachat
 - Module: `chansaver` saves joined channels
 
 To edit ZNC config, either:
 - Use web admin or `/msg *controlpanel` from weechat
-- SSH to whatbox and edit config (stop ZNC first)
+- SSH to ZNC server and edit config (stop ZNC first)
 
 ### Weechat (Local)
 
@@ -76,7 +73,6 @@ To edit ZNC config, either:
 |---------|--------|----------|
 | Libera | irc.libera.chat | #archlinux, #archlinux-offtopic, #linux |
 | OFTC | irc.oftc.net | #tor |
-| Whatbox | irc.whatbox.ca | #whatbox |
 | AAChat | irc.aachat.net | #a&a |
 
 ## Custom Scripts
