@@ -30,6 +30,10 @@ alias nano='nvim'
 alias gpull='git pull'
 alias gpush='git push'
 
+# Clipboard (macOS compatibility)
+alias pbcopy='wl-copy'
+alias pbpaste='wl-paste'
+
 # Dotfiles sync functions
 function dotpush {
     (
