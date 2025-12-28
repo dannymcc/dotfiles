@@ -81,7 +81,7 @@ fi
 
 # Stow packages (simple symlinks)
 info "Installing configs via stow..."
-STOW_PACKAGES="bash zsh git hypr tmux waybar weechat claude"
+STOW_PACKAGES="bash zsh git hypr tmux waybar weechat claude ghostty"
 
 # Clean up old manual symlinks that conflict with stow
 cleanup_for_stow() {
