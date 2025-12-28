@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=IRC
 Comment=WeeChat IRC Client (via ZNC)
-Exec=bash -c 'pkill -9 weechat 2>/dev/null; rm -f ~/.config/weechat/weechat_fifo_* 2>/dev/null; exec ghostty -e weechat'
+Exec=bash -c 'pkill -9 weechat 2>/dev/null; rm -f ~/.config/weechat/weechat_fifo_* 2>/dev/null; exec ghostty --config-file=~/.config/ghostty/weechat.conf -e weechat'
 Icon=weechat
 Terminal=false
 Type=Application
