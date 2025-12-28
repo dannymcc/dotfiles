@@ -127,12 +127,20 @@ Caffeinate/decaffeinate prevent the system from sleeping:
 
 **weechat/** - IRC client configuration via ZNC bouncer
 
-The setup uses a ZNC bouncer running on Whatbox for persistent connections:
+The setup uses a ZNC bouncer for persistent connections:
 - ZNC handles staying connected 24/7 and buffering messages
 - Local weechat connects to ZNC, not directly to IRC networks
 - Passwords stored in weechat's encrypted `sec.conf` (not in git)
 
-Networks: Libera (#archlinux, #archlinux-offtopic, #linux), OFTC (#tor), Whatbox (#whatbox), AAChat (#a&a)
+Networks: Libera (#archlinux, #archlinux-offtopic, #linux), OFTC (#tor), AAChat (#a&a)
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+x` | Switch between servers |
+| `Alt+<num>` | Switch to buffer/channel by number |
+| `Alt+z` | Toggle sidebars (for clean text copying) |
+
+Mouse support enabled - click buffers/nicks, scroll with wheel. Hold `Shift` for terminal text selection.
 
 To manage channels, use ZNC's web admin or `/msg *controlpanel` in weechat.
 

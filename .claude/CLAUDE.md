@@ -67,6 +67,29 @@ To edit ZNC config, either:
 
 **Important**: Weechat config files are warnings about not editing while running. Use `/set` commands in weechat, then `/save`.
 
+#### Weechat Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+x` | Switch between servers |
+| `Alt+<num>` | Switch to buffer/channel by number |
+| `Alt+↑/↓` | Navigate buffer list |
+| `Alt+z` | Toggle sidebars (for clean text copying) |
+| `F5/F6` | Previous/next buffer |
+
+#### Weechat Settings
+
+Mouse support and custom keybinds (run in weechat):
+```
+/mouse enable
+/set weechat.look.mouse on
+/key bind meta-z /bar toggle buflist;/bar toggle nicklist
+/save
+```
+
+- Mouse: Click buffers, nicks, scroll. Hold `Shift` for terminal selection.
+- Highlights: `notify_send.py` and `highmon.pl` scripts installed for notifications.
+
 ### Current IRC Networks
 
 | Network | Server | Channels |
