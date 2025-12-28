@@ -19,7 +19,8 @@
     "bluetooth",
     "pulseaudio",
     "custom/power-profile",
-    "battery"
+    "battery",
+    "custom/hostname"
   ],
   "hyprland/workspaces": {
     "on-click": "activate",
@@ -181,5 +182,11 @@
       "paused": "⏸"
     },
     "max-length": 50
+  },
+  "custom/hostname": {
+    "format": "{}",
+    "exec": "hostname",
+    "interval": "once",
+    "tooltip": false
   }
 }
