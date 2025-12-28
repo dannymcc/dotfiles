@@ -10,7 +10,7 @@
   "margin-right": 10,
 
   "modules-left": ["custom/omarchy", "hyprland/workspaces"],
-  "modules-center": ["clock", "custom/update", "custom/screenrecording-indicator"],
+  "modules-center": ["custom/userhost", "custom/update", "custom/screenrecording-indicator"],
   "modules-right": [
     "mpris",
     "group/tray-expander",
@@ -20,7 +20,7 @@
     "pulseaudio",
     "custom/power-profile",
     "battery",
-    "custom/hostname"
+    "clock"
   ],
   "hyprland/workspaces": {
     "on-click": "activate",
@@ -183,9 +183,9 @@
     },
     "max-length": 50
   },
-  "custom/hostname": {
+  "custom/userhost": {
     "format": "{}",
-    "exec": "hostname",
+    "exec": "echo \"$(whoami)@$(hostname)\"",
     "interval": "once",
     "tooltip": false
   }
