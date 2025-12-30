@@ -1,0 +1,10 @@
+#!/bin/bash
+# ============================================================================
+# lf Preview Cleaner
+# ============================================================================
+# Part of Danny's omarchy-config dotfiles
+# https://blog.dmcc.io/dotfiles/
+# ============================================================================
+
+# Clean up any temporary preview files or reset terminal state if needed
+exit 0

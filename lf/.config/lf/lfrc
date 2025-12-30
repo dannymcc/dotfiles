@@ -1,0 +1,172 @@
+# ============================================================================
+# lf File Manager Configuration
+# https://github.com/gokcehan/lf
+# ============================================================================
+# Part of Danny's omarchy-config dotfiles
+# https://blog.dmcc.io/dotfiles/
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Shell & Basic Settings
+# ----------------------------------------------------------------------------
+
+set shell zsh
+set shellopts '-euy'
+set ifs "\n"
+set scrolloff 10
+set icons
+set period 1
+set hiddenfiles ".*:*.aux:*.log:*.bbl:*.bcf:*.blg:*.run.xml"
+set cleaner '~/.config/lf/cleaner'
+set previewer '~/.config/lf/scope'
+
+# ----------------------------------------------------------------------------
+# Display Settings
+# ----------------------------------------------------------------------------
+
+set ratios 1:2:3
+set info size:time
+set dircounts
+set drawbox
+
+# ----------------------------------------------------------------------------
+# Key Bindings
+# ----------------------------------------------------------------------------
+
+# Clear default bindings
+map d
+map y
+map p
+
+# Navigation
+map . set hidden!
+map <enter> shell
+map J :updir; down; open
+map K :updir; up; open
+
+# File operations
+map dd cut
+map yy copy
+map pp paste
+map dD delete
+map <delete> delete
+
+# Selections
+map <space> :toggle; down
+map V invert
+
+# Quick access directories
+map gh cd ~
+map gd cd ~/Downloads
+map gp cd ~/projects
+map gc cd ~/.config
+map go cd ~/omarchy-config
+
+# Renaming
+map r rename
+map R :rename; cmd-end
+map A :rename; cmd-delete-home
+map I :rename; cmd-home
+
+# Open with specific programs
+map o open
+map O $mimeopen --ask "$f"
+
+# Archives
+map az zip
+map at tar
+map ag targz
+map ab tarbz2
+map ax extract
+
+# ----------------------------------------------------------------------------
+# Commands
+# ----------------------------------------------------------------------------
+
+# Open files based on type
+cmd open ${{
+    case $(file --mime-type -Lb "$f") in
+        text/*|application/json|application/javascript)
+            $EDITOR "$f";;
+        image/*)
+            imv "$f" &;;
+        video/*|audio/*)
+            mpv "$f" &;;
+        application/pdf)
+            zathura "$f" &;;
+        *)
+            xdg-open "$f" &;;
+    esac
+}}
+
+# Create directory
+cmd mkdir %{{
+    printf "Directory name: "
+    read ans
+    mkdir -p "$ans"
+}}
+
+# Create file
+cmd touch %{{
+    printf "File name: "
+    read ans
+    touch "$ans"
+}}
+
+# Archive commands
+cmd zip %{{
+    set -f
+    mkdir -p "$1"
+    cp -r $fx "$1"
+    zip -r "$1.zip" "$1"
+    rm -rf "$1"
+}}
+
+cmd tar %{{
+    set -f
+    mkdir -p "$1"
+    cp -r $fx "$1"
+    tar cvf "$1.tar" "$1"
+    rm -rf "$1"
+}}
+
+cmd targz %{{
+    set -f
+    mkdir -p "$1"
+    cp -r $fx "$1"
+    tar cvzf "$1.tar.gz" "$1"
+    rm -rf "$1"
+}}
+
+cmd tarbz2 %{{
+    set -f
+    mkdir -p "$1"
+    cp -r $fx "$1"
+    tar cvjf "$1.tar.bz2" "$1"
+    rm -rf "$1"
+}}
+
+cmd extract ${{
+    set -f
+    case "$f" in
+        *.tar.bz|*.tar.bz2|*.tbz|*.tbz2) tar xjvf "$f";;
+        *.tar.gz|*.tgz) tar xzvf "$f";;
+        *.tar.xz|*.txz) tar xJvf "$f";;
+        *.zip) unzip "$f";;
+        *.rar) unrar x "$f";;
+        *.7z) 7z x "$f";;
+    esac
+}}
+
+# fzf integration
+cmd fzf_jump ${{
+    res="$(find . -maxdepth 3 | fzf --reverse --header='Jump to:')"
+    if [ -f "$res" ]; then
+        cmd="select"
+    elif [ -d "$res" ]; then
+        cmd="cd"
+    fi
+    lf -remote "send $id $cmd \"$res\""
+}}
+
+map f fzf_jump

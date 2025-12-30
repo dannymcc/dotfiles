@@ -1,0 +1,170 @@
+# ============================================================================
+# Starship Prompt Configuration
+# https://starship.rs
+# ============================================================================
+# Part of Danny's omarchy-config dotfiles
+# https://blog.dmcc.io/dotfiles/
+# ============================================================================
+
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# ----------------------------------------------------------------------------
+# Prompt Format
+# ----------------------------------------------------------------------------
+# Left: character and directory
+# Right: git info, language versions, system status
+
+format = """
+$character\
+$directory\
+$git_branch\
+$git_status\
+"""
+
+right_format = """
+$git_state\
+$golang\
+$nodejs\
+$python\
+$rust\
+$cmd_duration\
+$jobs\
+"""
+
+continuation_prompt = "[.](bright-black) "
+
+# ----------------------------------------------------------------------------
+# Character (Prompt Symbol)
+# ----------------------------------------------------------------------------
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[x](bold red)"
+vimcmd_symbol = "[<](bold green)"
+vimcmd_visual_symbol = "[<](bold yellow)"
+vimcmd_replace_symbol = "[<](bold purple)"
+vimcmd_replace_one_symbol = "[<](bold purple)"
+
+# ----------------------------------------------------------------------------
+# Directory
+# ----------------------------------------------------------------------------
+
+[directory]
+truncation_length = 4
+truncate_to_repo = true
+read_only = " ro"
+style = "bold cyan"
+
+# ----------------------------------------------------------------------------
+# Git
+# ----------------------------------------------------------------------------
+
+[git_branch]
+symbol = ""
+style = "bold purple"
+truncation_length = 20
+truncation_symbol = "..."
+
+[git_status]
+style = "bold yellow"
+format = '([$all_status$ahead_behind]($style) )'
+ahead = ">"
+behind = "<"
+diverged = "<>"
+renamed = "r"
+deleted = "x"
+staged = "[+$count](green)"
+modified = "[~$count](yellow)"
+untracked = "[?$count](blue)"
+conflicted = "[!$count](red)"
+
+[git_state]
+style = "bold yellow"
+format = '[$state( $progress_current/$progress_total)]($style) '
+rebase = "REBASING"
+merge = "MERGING"
+revert = "REVERTING"
+cherry_pick = "CHERRY-PICKING"
+bisect = "BISECTING"
+
+[git_commit]
+tag_symbol = " tag "
+
+# ----------------------------------------------------------------------------
+# Languages
+# ----------------------------------------------------------------------------
+
+[golang]
+symbol = "go "
+style = "bold cyan"
+format = '[$symbol$version]($style) '
+
+[nodejs]
+symbol = "node "
+style = "bold green"
+format = '[$symbol$version]($style) '
+
+[python]
+symbol = "py "
+style = "bold yellow"
+format = '[$symbol$version]($style) '
+
+[rust]
+symbol = "rs "
+style = "bold red"
+format = '[$symbol$version]($style) '
+
+[lua]
+symbol = "lua "
+
+[ruby]
+symbol = "rb "
+
+# ----------------------------------------------------------------------------
+# System Status
+# ----------------------------------------------------------------------------
+
+[cmd_duration]
+min_time = 2_000
+format = '[$duration]($style) '
+style = "bold yellow"
+
+[jobs]
+symbol = "*"
+threshold = 1
+
+[battery]
+full_symbol = "full "
+charging_symbol = "chr "
+discharging_symbol = "bat "
+unknown_symbol = "unk "
+empty_symbol = "empty "
+
+[[battery.display]]
+threshold = 20
+style = "bold red"
+
+# ----------------------------------------------------------------------------
+# Disabled Modules (reduce noise)
+# ----------------------------------------------------------------------------
+
+[aws]
+disabled = true
+
+[azure]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[docker_context]
+disabled = true
+
+[package]
+disabled = true
+
+[terraform]
+disabled = true
+
+[kubernetes]
+disabled = true

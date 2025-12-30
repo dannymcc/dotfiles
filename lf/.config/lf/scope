@@ -1,0 +1,53 @@
+#!/bin/bash
+# ============================================================================
+# lf File Previewer
+# ============================================================================
+# Part of Danny's omarchy-config dotfiles
+# https://blog.dmcc.io/dotfiles/
+# ============================================================================
+
+set -C -f
+IFS="$(printf '%b_' '\n')"; IFS="${IFS%_}"
+
+FILE_PATH="$1"
+WIDTH="${2:-80}"
+HEIGHT="${3:-40}"
+X="${4:-0}"
+Y="${5:-0}"
+
+# Handle based on file type
+handle_mime() {
+    local mimetype="$1"
+    case "$mimetype" in
+        # Text files
+        text/*|*/xml|*/json)
+            bat --color=always --style=plain --paging=never --line-range :100 "$FILE_PATH" 2>/dev/null || cat "$FILE_PATH"
+            ;;
+        # PDFs
+        application/pdf)
+            pdftotext -l 5 -nopgbrk -q -- "$FILE_PATH" - | head -100
+            ;;
+        # Archives
+        application/zip|application/gzip|application/x-tar|application/x-bzip2|application/x-xz|application/x-7z-compressed)
+            atool --list -- "$FILE_PATH" 2>/dev/null || bsdtar --list --file "$FILE_PATH" 2>/dev/null
+            ;;
+        # Images
+        image/*)
+            exiftool "$FILE_PATH" 2>/dev/null | head -20
+            ;;
+        # Video
+        video/*|audio/*)
+            mediainfo "$FILE_PATH" 2>/dev/null | head -30
+            ;;
+        # Fallback
+        *)
+            file --brief "$FILE_PATH"
+            ;;
+    esac
+}
+
+# Get mime type and handle
+MIMETYPE=$(file --dereference --brief --mime-type -- "$FILE_PATH")
+handle_mime "$MIMETYPE"
+
+exit 0

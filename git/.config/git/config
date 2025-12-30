@@ -1,12 +1,27 @@
-# See https://git-scm.com/docs/git-config
+# ============================================================================
+# Git Configuration
+# https://git-scm.com/docs/git-config
+# ============================================================================
+# Part of Danny's omarchy-config dotfiles
+# https://blog.dmcc.io/dotfiles/
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Aliases
+# ----------------------------------------------------------------------------
 
 [alias]
 	co = checkout
 	br = branch
 	ci = commit
 	st = status
+# ----------------------------------------------------------------------------
+# Core Settings
+# ----------------------------------------------------------------------------
+
 [init]
 	defaultBranch = master
+
 [pull]
 	rebase = true 			 # Rebase (instead of merge) on pull
 [push]
@@ -28,12 +43,22 @@
 [rerere]
 	enabled = true           # Record and reuse conflict resolutions
 	autoupdate = true        # Apply stored conflict resolutions automatically
+
+# ----------------------------------------------------------------------------
+# Identity & Signing
+# ----------------------------------------------------------------------------
+
 [user]
 	name = Danny McClelland
 	email = danny@dmcc.io
 	signingkey = ~/.ssh/id_ed25519.pub
 [gpg]
 	format = ssh
+
+# ----------------------------------------------------------------------------
+# Credentials (GitHub CLI integration)
+# ----------------------------------------------------------------------------
+
 [credential "https://github.com"]
 	helper = 
 	helper = !/usr/bin/gh auth git-credential

@@ -1,40 +1,173 @@
-# If not running interactively, don't do anything
+# ============================================================================
+# Zsh Configuration
+# ============================================================================
+# Part of Danny's omarchy-config dotfiles
+# https://blog.dmcc.io/dotfiles/
+# ============================================================================
+
+# Exit early if not running interactively
 [[ $- != *i* ]] && return
 
-# Load omarchy-zsh configuration
+# ----------------------------------------------------------------------------
+# Omarchy Base Configuration
+# ----------------------------------------------------------------------------
+# Load the base omarchy-zsh configuration (provides completions, keybindings,
+# history settings, and core functionality)
+
 if [[ -d /usr/share/omarchy-zsh/conf.d ]]; then
-  for config in /usr/share/omarchy-zsh/conf.d/*.zsh; do
-    [[ -f "$config" ]] && source "$config"
-  done
+    for config in /usr/share/omarchy-zsh/conf.d/*.zsh; do
+        [[ -f "$config" ]] && source "$config"
+    done
 fi
 
-# Load omarchy-zsh functions and aliases
 if [[ -d /usr/share/omarchy-zsh/functions ]]; then
-  for func in /usr/share/omarchy-zsh/functions/*.zsh; do
-    [[ -f "$func" ]] && source "$func"
-  done
+    for func in /usr/share/omarchy-zsh/functions/*.zsh; do
+        [[ -f "$func" ]] && source "$func"
+    done
 fi
 
-# Add your own customizations below
+# ----------------------------------------------------------------------------
+# Environment Variables
+# ----------------------------------------------------------------------------
 
-# PATH entries
-export PATH="$HOME/.local/bin:$HOME/.local/share/omarchy/bin:$HOME/.bun/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/omarchy/bin:$HOME/.bun/bin:$HOME/go/bin:$HOME/.cargo/bin:$PATH"
+export EDITOR="nvim"
+export VISUAL="nvim"
+export PAGER="less"
+export LANG="en_GB.UTF-8"
+export LC_ALL="en_GB.UTF-8"
 
-# Directory shortcuts
+# ----------------------------------------------------------------------------
+# History Settings
+# ----------------------------------------------------------------------------
+# Enhanced history with deduplication and sharing across sessions
+
+HISTSIZE=50000
+SAVEHIST=50000
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+
+# Create history directory if needed
+[[ -d "${HISTFILE:h}" ]] || mkdir -p "${HISTFILE:h}"
+
+setopt HIST_IGNORE_ALL_DUPS    # Remove older duplicate entries
+setopt HIST_IGNORE_SPACE       # Ignore commands starting with space
+setopt HIST_REDUCE_BLANKS      # Remove superfluous blanks
+setopt HIST_VERIFY             # Show command before executing from history
+setopt SHARE_HISTORY           # Share history across sessions
+setopt EXTENDED_HISTORY        # Save timestamp with history
+setopt INC_APPEND_HISTORY      # Add commands immediately to history
+
+# ----------------------------------------------------------------------------
+# FZF Integration
+# ----------------------------------------------------------------------------
+# Fuzzy finding for files, history, and directories
+
+if command -v fzf &>/dev/null; then
+    # Use ripgrep for fzf if available
+    if command -v rg &>/dev/null; then
+        export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+    fi
+
+    export FZF_DEFAULT_OPTS='
+        --height 40%
+        --layout=reverse
+        --border
+        --info=inline
+        --color=fg:#e5e9f0,bg:#2e3440,hl:#81a1c1
+        --color=fg+:#e5e9f0,bg+:#3b4252,hl+:#81a1c1
+        --color=info:#eacb8a,prompt:#bf6069,pointer:#b48ead
+        --color=marker:#a3be8b,spinner:#b48ead,header:#a3be8b'
+
+    # Load fzf keybindings and completion
+    [[ -f /usr/share/fzf/key-bindings.zsh ]] && source /usr/share/fzf/key-bindings.zsh
+    [[ -f /usr/share/fzf/completion.zsh ]] && source /usr/share/fzf/completion.zsh
+fi
+
+# ----------------------------------------------------------------------------
+# Zsh Autosuggestions
+# ----------------------------------------------------------------------------
+# Fish-like suggestions as you type
+
+if [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+    source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+    ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+fi
+
+# ----------------------------------------------------------------------------
+# Modern CLI Aliases
+# ----------------------------------------------------------------------------
+# Replace traditional tools with modern alternatives
+
+# eza (modern ls)
+if command -v eza &>/dev/null; then
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza -la --icons --group-directories-first --git'
+    alias la='eza -a --icons --group-directories-first'
+    alias lt='eza --tree --icons --level=2'
+    alias tree='eza --tree --icons'
+fi
+
+# bat (modern cat)
+if command -v bat &>/dev/null; then
+    alias cat='bat --style=plain --paging=never'
+    alias catp='bat'  # Full bat with paging
+fi
+
+# btop (modern top)
+if command -v btop &>/dev/null; then
+    alias top='btop'
+    alias htop='btop'
+fi
+
+# ----------------------------------------------------------------------------
+# General Aliases
+# ----------------------------------------------------------------------------
+
+# Navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
 alias projects='cd ~/projects'
 
-# nvim > nano
+# Editor
 alias nano='nvim'
-
-# Git aliases
-alias gpull='git pull'
-alias gpush='git push'
+alias vim='nvim'
+alias v='nvim'
 
 # Clipboard (macOS compatibility)
 alias pbcopy='wl-copy'
 alias pbpaste='wl-paste'
 
-# Dotfiles sync functions
+# Git shortcuts
+alias g='git'
+alias gs='git status'
+alias gd='git diff'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git pull'
+alias gpull='git pull'
+alias gpush='git push'
+alias glog='git log --oneline --graph --decorate -20'
+
+# Safety nets
+alias rm='rm -I'
+alias mv='mv -i'
+alias cp='cp -i'
+
+# Misc
+alias df='df -h'
+alias du='du -h'
+alias free='free -h'
+alias grep='grep --color=auto'
+alias diff='diff --color=auto'
+
+# ----------------------------------------------------------------------------
+# Functions
+# ----------------------------------------------------------------------------
+
+# Dotfiles sync - push local changes to GitHub
 function dotpush {
     (
         builtin cd ~/omarchy-config || exit 1
@@ -48,6 +181,7 @@ function dotpush {
     )
 }
 
+# Dotfiles sync - pull remote changes from GitHub
 function dotpull {
     (
         builtin cd ~/omarchy-config || exit 1
@@ -62,12 +196,50 @@ function dotpull {
     )
 }
 
-# Load mise (if installed)
-if command -v mise &> /dev/null; then
+# Create directory and cd into it
+function mkcd {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Extract various archive formats
+function extract {
+    if [[ -f "$1" ]]; then
+        case "$1" in
+            *.tar.bz2) tar xjf "$1"    ;;
+            *.tar.gz)  tar xzf "$1"    ;;
+            *.tar.xz)  tar xJf "$1"    ;;
+            *.bz2)     bunzip2 "$1"    ;;
+            *.rar)     unrar x "$1"    ;;
+            *.gz)      gunzip "$1"     ;;
+            *.tar)     tar xf "$1"     ;;
+            *.tbz2)    tar xjf "$1"    ;;
+            *.tgz)     tar xzf "$1"    ;;
+            *.zip)     unzip "$1"      ;;
+            *.Z)       uncompress "$1" ;;
+            *.7z)      7z x "$1"       ;;
+            *)         echo "'$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}
+
+# Quick HTTP server in current directory
+function serve {
+    local port="${1:-8000}"
+    python3 -m http.server "$port"
+}
+
+# ----------------------------------------------------------------------------
+# Tool Integrations
+# ----------------------------------------------------------------------------
+
+# mise (runtime version manager)
+if command -v mise &>/dev/null; then
     eval "$(mise activate zsh)"
 fi
 
-# Starship prompt
-if command -v starship &> /dev/null; then
+# Starship prompt (must be last)
+if command -v starship &>/dev/null; then
     eval "$(starship init zsh)"
 fi
