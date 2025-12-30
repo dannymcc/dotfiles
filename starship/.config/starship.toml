@@ -21,12 +21,16 @@ $character\
 
 right_format = """
 $git_state\
+$git_commit\
+$c\
 $golang\
+$lua\
 $nodejs\
 $python\
+$ruby\
 $rust\
-$cmd_duration\
-$jobs\
+${custom.hugo}\
+$battery\
 """
 
 continuation_prompt = "[∙](bright-black) "
@@ -89,7 +93,11 @@ cherry_pick = "PICKING"
 bisect = "BISECTING"
 
 [git_commit]
-tag_symbol = " 🏷 "
+format = '[$hash$tag]($style) '
+style = "dimmed white"
+only_detached = false
+commit_hash_length = 7
+tag_symbol = " 󰓹 "
 
 # ----------------------------------------------------------------------------
 # Languages
@@ -128,25 +136,32 @@ symbol = "󰙱 "
 format = '[$symbol$version]($style) '
 
 # ----------------------------------------------------------------------------
+# Custom Modules
+# ----------------------------------------------------------------------------
+
+[custom.hugo]
+format = '[$symbol($output )]($style)'
+style = "bold magenta"
+symbol = "󰅩 "
+command = "hugo version | cut -d ' ' -f2 | cut -d '+' -f1"
+detect_files = ["hugo.toml", "hugo.yaml", "hugo.json"]
+detect_folders = ["archetypes", "content", "layouts"]
+
+# ----------------------------------------------------------------------------
 # System Status
 # ----------------------------------------------------------------------------
 
-[cmd_duration]
-min_time = 2_000
-format = '[󱎫 $duration]($style) '
-style = "bold yellow"
-
-[jobs]
-symbol = "󰜎 "
-threshold = 1
-format = '[$symbol$number]($style) '
-
 [battery]
-full_symbol = "󰁹 "
-charging_symbol = "󰂄 "
-discharging_symbol = "󰂃 "
-unknown_symbol = "󰂑 "
-empty_symbol = "󰂎 "
+full_symbol = "󰁹"
+charging_symbol = "󰂄"
+discharging_symbol = "󰂃"
+unknown_symbol = "󰂑"
+empty_symbol = "󰂎"
+format = '[$symbol $percentage]($style) '
+
+[[battery.display]]
+threshold = 100
+style = "white"
 
 [[battery.display]]
 threshold = 20
