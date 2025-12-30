@@ -41,13 +41,10 @@ export LC_ALL="en_GB.UTF-8"
 # History Settings
 # ----------------------------------------------------------------------------
 # Enhanced history with deduplication and sharing across sessions
+# Note: HISTFILE is set by omarchy-zsh to ~/.zsh_history
 
 HISTSIZE=50000
 SAVEHIST=50000
-HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
-
-# Create history directory if needed
-[[ -d "${HISTFILE:h}" ]] || mkdir -p "${HISTFILE:h}"
 
 setopt HIST_IGNORE_ALL_DUPS    # Remove older duplicate entries
 setopt HIST_IGNORE_SPACE       # Ignore commands starting with space
@@ -69,7 +66,7 @@ if command -v fzf &>/dev/null; then
     fi
 
     export FZF_DEFAULT_OPTS='
-        --height 40%
+        --height 60%
         --layout=reverse
         --border
         --info=inline
@@ -81,6 +78,7 @@ if command -v fzf &>/dev/null; then
     # Load fzf keybindings and completion
     [[ -f /usr/share/fzf/key-bindings.zsh ]] && source /usr/share/fzf/key-bindings.zsh
     [[ -f /usr/share/fzf/completion.zsh ]] && source /usr/share/fzf/completion.zsh
+
 fi
 
 # ----------------------------------------------------------------------------
