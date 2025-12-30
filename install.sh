@@ -63,7 +63,7 @@ info "Checking required packages..."
 # Core packages
 PACKAGES="stow blueberry python-rich python-requests python-textual wl-clipboard hibob-tui hunspell-en_gb weechat omarchy-zsh"
 # Modern CLI tools
-PACKAGES="$PACKAGES lf zathura zathura-pdf-mupdf gitui zsh-autosuggestions ripgrep"
+PACKAGES="$PACKAGES lf zathura zathura-pdf-mupdf gitui zsh-autosuggestions ripgrep fastfetch fortune-mod"
 MISSING=""
 for pkg in $PACKAGES; do
     if ! pacman -Qi "$pkg" &>/dev/null; then
@@ -88,7 +88,7 @@ fi
 
 # Stow packages (simple symlinks)
 info "Installing configs via stow..."
-STOW_PACKAGES="bash zsh git hypr tmux waybar weechat claude ghostty starship lf"
+STOW_PACKAGES="bash zsh git hypr tmux waybar weechat claude ghostty starship lf fastfetch"
 
 # Clean up old manual symlinks that conflict with stow
 cleanup_for_stow() {

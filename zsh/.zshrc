@@ -229,6 +229,28 @@ function serve {
 }
 
 # ----------------------------------------------------------------------------
+# Terminal Greeting
+# ----------------------------------------------------------------------------
+
+# Logo + quote side by side
+if [[ -f ~/.config/fastfetch/logo.txt ]] && command -v fortune &>/dev/null; then
+    local logo_file=~/.config/fastfetch/logo.txt
+    local logo_lines=$(wc -l < "$logo_file")
+    local quote=$(fortune -s linux | fold -s -w 40)
+    local quote_lines=$(echo "$quote" | wc -l)
+    local pad_top=$(( (logo_lines - quote_lines) / 2 ))
+
+    paste -d' ' \
+        <(cat "$logo_file" | sed 's/$/    /') \
+        <(printf '%0.s\n' $(seq 1 $pad_top) 2>/dev/null; echo "$quote") \
+        2>/dev/null
+    echo
+elif [[ -f ~/.config/fastfetch/logo.txt ]]; then
+    cat ~/.config/fastfetch/logo.txt
+    echo
+fi
+
+# ----------------------------------------------------------------------------
 # Tool Integrations
 # ----------------------------------------------------------------------------
 
