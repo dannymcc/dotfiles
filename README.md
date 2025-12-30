@@ -40,27 +40,187 @@ hyprctl reload
 systemctl --user restart elephant
 ```
 
-## Contents
+## Features
 
-### Shell
+### Shell Aliases
 
-**bash/** - Shell aliases and configuration
+Modern CLI tool replacements (automatically enabled when tools are installed):
 
-| Command | Description |
-|---------|-------------|
-| `dotpush` | Commit and push dotfiles to GitHub |
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `ls` | `eza --icons` | List files with icons |
+| `ll` | `eza -la --git` | Long listing with git status |
+| `la` | `eza -a` | List all including hidden |
+| `lt` | `eza --tree` | Tree view (2 levels) |
+| `tree` | `eza --tree` | Full tree view |
+| `cat` | `bat --plain` | Syntax-highlighted file viewer |
+| `catp` | `bat` | Full bat with paging |
+| `top` | `btop` | Modern system monitor |
+| `htop` | `btop` | Modern system monitor |
+
+Navigation:
+
+| Alias | Description |
+|-------|-------------|
+| `..` | Go up one directory |
+| `...` | Go up two directories |
+| `....` | Go up three directories |
+| `projects` | cd to ~/projects |
+
+Editor:
+
+| Alias | Description |
+|-------|-------------|
+| `nano` | Opens nvim |
+| `vim` | Opens nvim |
+| `v` | Opens nvim |
+
+Git shortcuts:
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `g` | `git` | Git shorthand |
+| `gs` | `git status` | Show status |
+| `gd` | `git diff` | Show diff |
+| `ga` | `git add` | Stage files |
+| `gc` | `git commit` | Commit changes |
+| `gp` | `git push` | Push to remote |
+| `gl` | `git pull` | Pull from remote |
+| `gpull` | `git pull` | Pull from remote |
+| `gpush` | `git push` | Push to remote |
+| `glog` | `git log --oneline --graph` | Pretty git log (20 commits) |
+
+Safety nets:
+
+| Alias | Description |
+|-------|-------------|
+| `rm` | Prompts before removing more than 3 files |
+| `mv` | Prompts before overwriting |
+| `cp` | Prompts before overwriting |
+
+Clipboard (macOS compatibility):
+
+| Alias | Description |
+|-------|-------------|
+| `pbcopy` | Copy to Wayland clipboard |
+| `pbpaste` | Paste from Wayland clipboard |
+
+Miscellaneous:
+
+| Alias | Description |
+|-------|-------------|
+| `df` | Disk usage (human-readable) |
+| `du` | Directory size (human-readable) |
+| `free` | Memory usage (human-readable) |
+| `grep` | grep with color |
+| `diff` | diff with color |
+
+### Shell Functions
+
+| Function | Description |
+|----------|-------------|
+| `dotpush` | Commit and push all dotfile changes to GitHub |
 | `dotpull` | Pull latest dotfiles from GitHub |
-| `gpull` / `gpush` | Git pull/push shortcuts |
-| `projects` | Quick cd to projects directory |
-| `nano` | Aliased to `nvim` |
+| `mkcd <dir>` | Create directory and cd into it |
+| `extract <file>` | Extract any archive format (.tar.gz, .zip, .7z, etc.) |
+| `serve [port]` | Start HTTP server in current directory (default: 8000) |
 
-### Git
+### Git Configuration
 
-**git/** - Git configuration
-- User name and email
-- Useful aliases (`co`, `br`, `ci`, `st`)
-- Sensible defaults (rebase on pull, auto-setup remote)
-- GitHub credential helper via `gh auth`
+Aliases defined in git config:
+
+| Alias | Command |
+|-------|---------|
+| `git co` | `git checkout` |
+| `git br` | `git branch` |
+| `git ci` | `git commit` |
+| `git st` | `git status` |
+
+Features:
+- **Rebase on pull** - Cleaner history, no merge commits
+- **Auto-setup remote** - First push automatically sets upstream
+- **Histogram diff** - Clearer diffs on moved/edited lines
+- **SSH commit signing** - Commits signed with `~/.ssh/id_ed25519.pub`
+- **Branch sorting** - Sorted by most recent commit
+- **Rerere** - Remembers and reuses conflict resolutions
+- **GitHub CLI integration** - Credentials via `gh auth`
+
+### Starship Prompt
+
+A minimal, informative prompt with Nerd Font icons:
+
+**Left prompt:**
+- Current directory (truncated to repo root)
+- Git branch with icon
+- Git status (staged/modified/untracked counts)
+- Prompt character (changes color on error, shape in vim mode)
+
+**Right prompt:**
+- Git state (rebasing, merging, etc.)
+- Language versions (Go, Node.js, Python, Rust) with devicons
+- Command duration (if >2s)
+- Background job count
+
+### lf File Manager
+
+Terminal file manager with vim-style navigation.
+
+**Navigation:**
+
+| Key | Action |
+|-----|--------|
+| `h/j/k/l` | Navigate (vim-style) |
+| `.` | Toggle hidden files |
+| `J` | Move down and into directory |
+| `K` | Move up and into directory |
+| `f` | Fuzzy find with fzf |
+
+**Quick access:**
+
+| Key | Directory |
+|-----|-----------|
+| `gh` | Home (~) |
+| `gd` | Downloads |
+| `gp` | Projects |
+| `gc` | .config |
+| `go` | omarchy-config |
+
+**File operations:**
+
+| Key | Action |
+|-----|--------|
+| `dd` | Cut |
+| `yy` | Copy |
+| `pp` | Paste |
+| `dD` | Delete |
+| `r` | Rename |
+| `Space` | Select/toggle |
+| `V` | Invert selection |
+
+**Archives:**
+
+| Key | Action |
+|-----|--------|
+| `az` | Create zip |
+| `at` | Create tar |
+| `ag` | Create tar.gz |
+| `ab` | Create tar.bz2 |
+| `ax` | Extract archive |
+
+### FZF Integration
+
+Fuzzy finding with Nord color scheme:
+
+- `Ctrl+T` - Find files
+- `Ctrl+R` - Search command history
+- `Alt+C` - cd into directory
+- Uses ripgrep for file search when available
+
+### Zsh Autosuggestions
+
+Fish-like suggestions as you type, sourced from history and completions.
+
+## Contents
 
 ### Hyprland
 
