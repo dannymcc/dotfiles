@@ -352,6 +352,8 @@ hibob-tui john           # Quick search from command line
 - `99-thinkpad-led.rules` - Lid logo LED lights up when charging
 - Only installed on ThinkPad hardware
 
+**TrackPoint disabled** - The red pointing stick is disabled in `hypr/.config/hypr/input.conf` to prevent accidental cursor movement while typing.
+
 ## Custom Keybindings
 
 | Keybind | Action |
