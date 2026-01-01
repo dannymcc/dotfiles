@@ -1,0 +1,26 @@
+#!/bin/bash
+# Weechat wrapper that fetches ZNC password from Proton Pass
+# and updates sec.conf before starting weechat
+
+set -e
+
+PASS_CLI="$HOME/.local/bin/pass-cli"
+SEC_CONF="$HOME/.config/weechat/sec.conf"
+
+# Fetch the ZNC password from Proton Pass
+ZNC_PASSWORD=$("$PASS_CLI" item view --vault-name "Personal" --item-title "ZNC Bouncer" --field password 2>/dev/null)
+
+if [ -z "$ZNC_PASSWORD" ]; then
+    echo "Error: Failed to fetch ZNC password from Proton Pass" >&2
+    echo "Make sure you're logged in: pass-cli login" >&2
+    exit 1
+fi
+
+# Update sec.conf with the password
+# Using sed to replace the znc_password line
+if [ -f "$SEC_CONF" ]; then
+    sed -i "s/^znc_password = \".*\"/znc_password = \"$ZNC_PASSWORD\"/" "$SEC_CONF"
+fi
+
+# Start weechat with all arguments passed through
+exec weechat "$@"

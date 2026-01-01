@@ -1,0 +1,58 @@
+#!/bin/bash
+# HiBob TUI wrapper that fetches API credentials from Proton Pass
+# and exports them as environment variables before starting hibob-tui
+# Uses kernel keyring for caching (1 hour TTL)
+
+set -e
+
+PASS_CLI="$HOME/.local/bin/pass-cli"
+CACHE_TTL=3600  # 1 hour in seconds
+KEY_USER_ID="hibob_user_id"
+KEY_TOKEN="hibob_token"
+
+# Try to get credentials from kernel keyring cache
+get_cached() {
+    local key_id
+    key_id=$(keyctl search @u user "$1" 2>/dev/null) || return 0
+    keyctl pipe "$key_id" 2>/dev/null
+}
+
+# Store credentials in kernel keyring with TTL
+cache_credential() {
+    local key_id
+    key_id=$(keyctl add user "$1" "$2" @u)
+    keyctl timeout "$key_id" "$CACHE_TTL"
+}
+
+# Try cache first
+HIBOB_SERVICE_USER_ID=$(get_cached "$KEY_USER_ID")
+HIBOB_SERVICE_USER_TOKEN=$(get_cached "$KEY_TOKEN")
+
+# If not cached, fetch from Proton Pass
+if [ -z "$HIBOB_SERVICE_USER_ID" ] || [ -z "$HIBOB_SERVICE_USER_TOKEN" ]; then
+    CREDS_JSON=$("$PASS_CLI" item view --vault-name "Personal" --item-title "HiBob API" --output json 2>/dev/null)
+
+    if [ -z "$CREDS_JSON" ]; then
+        echo "Error: Failed to fetch HiBob credentials from Proton Pass" >&2
+        echo "Make sure you're logged in: pass-cli login" >&2
+        exit 1
+    fi
+
+    # Parse both fields from the JSON response
+    HIBOB_SERVICE_USER_ID=$(echo "$CREDS_JSON" | jq -r '.item.content.content.Custom.sections[0].section_fields[] | select(.name == "Service User ID") | .content.Text')
+    HIBOB_SERVICE_USER_TOKEN=$(echo "$CREDS_JSON" | jq -r '.item.content.content.Custom.sections[0].section_fields[] | select(.name == "API Token") | .content.Hidden')
+
+    if [ -z "$HIBOB_SERVICE_USER_ID" ] || [ -z "$HIBOB_SERVICE_USER_TOKEN" ]; then
+        echo "Error: Failed to parse HiBob credentials from Proton Pass response" >&2
+        exit 1
+    fi
+
+    # Cache for next time
+    cache_credential "$KEY_USER_ID" "$HIBOB_SERVICE_USER_ID"
+    cache_credential "$KEY_TOKEN" "$HIBOB_SERVICE_USER_TOKEN"
+fi
+
+# Export credentials and start hibob-tui
+export HIBOB_SERVICE_USER_ID
+export HIBOB_SERVICE_USER_TOKEN
+exec hibob-tui "$@"

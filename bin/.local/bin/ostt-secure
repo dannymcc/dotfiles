@@ -1,0 +1,28 @@
+#!/bin/bash
+# OSTT wrapper that fetches OpenAI API key from Proton Pass
+# and updates credentials before starting ostt
+
+set -e
+
+PASS_CLI="$HOME/.local/bin/pass-cli"
+OSTT_CREDS="$HOME/.local/share/ostt/credentials"
+OSTT_DIR="$HOME/.local/share/ostt"
+
+# Ensure the directory exists
+mkdir -p "$OSTT_DIR"
+
+# Fetch the OpenAI API key from Proton Pass
+OPENAI_KEY=$("$PASS_CLI" item view --vault-name "Personal" --item-title "OpenAI API Key" --field "API Key" 2>/dev/null)
+
+if [ -z "$OPENAI_KEY" ]; then
+    echo "Error: Failed to fetch OpenAI API key from Proton Pass" >&2
+    echo "Make sure you're logged in: pass-cli login" >&2
+    exit 1
+fi
+
+# Write the credentials file
+echo "openai = \"$OPENAI_KEY\"" > "$OSTT_CREDS"
+chmod 600 "$OSTT_CREDS"
+
+# Start ostt with all arguments passed through
+exec ostt "$@"
