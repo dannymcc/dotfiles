@@ -23,5 +23,5 @@ fi
 
 notify-send "Secure IRC" "VPN connected - launching IRC" -i security-high
 
-# Launch weechat with custom config
-exec weechat -d ~/.config/weechat
+# Launch weechat with custom config (fetches password from Proton Pass)
+exec weechat-secure -d ~/.config/weechat
