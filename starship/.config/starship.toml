@@ -13,6 +13,7 @@
 # ----------------------------------------------------------------------------
 
 format = """
+$hostname\
 $directory\
 $git_branch\
 $git_status\
@@ -34,6 +35,15 @@ $battery\
 """
 
 continuation_prompt = "[∙](bright-black) "
+
+# ----------------------------------------------------------------------------
+# Hostname (shown only during SSH sessions)
+# ----------------------------------------------------------------------------
+
+[hostname]
+ssh_only = true
+style = "bold yellow"
+format = "[$hostname]($style) "
 
 # ----------------------------------------------------------------------------
 # Character (Prompt Symbol)

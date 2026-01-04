@@ -1,12 +1,12 @@
 #!/bin/bash
 # HiBob TUI wrapper that fetches API credentials from Proton Pass
 # and exports them as environment variables before starting hibob-tui
-# Uses kernel keyring for caching (1 hour TTL)
+# Uses kernel keyring for caching (1 month TTL)
 
 set -e
 
 PASS_CLI="$HOME/.local/bin/pass-cli"
-CACHE_TTL=3600  # 1 hour in seconds
+CACHE_TTL=2592000  # 1 month in seconds
 KEY_USER_ID="hibob_user_id"
 KEY_TOKEN="hibob_token"
 
