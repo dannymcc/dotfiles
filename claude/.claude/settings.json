@@ -1,0 +1,34 @@
+{
+  "includeCoAuthoredBy": false,
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "claude-mem@thedotmack": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -d 'Claude needs your input' https://ntfy.sh/kur0-7384881893973 &"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -d 'Claude has finished responding' https://ntfy.sh/kur0-7384881893973 &"
+          }
+        ]
+      }
+    ]
+  }
+}
