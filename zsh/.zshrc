@@ -9,6 +9,15 @@
 [[ $- != *i* ]] && return
 
 # ----------------------------------------------------------------------------
+# SSH Tmux Auto-Attach
+# ----------------------------------------------------------------------------
+# Automatically attach to (or create) a tmux session when connecting via SSH
+
+if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && command -v tmux &>/dev/null; then
+    tmux attach-session -t ssh 2>/dev/null || tmux new-session -s ssh
+fi
+
+# ----------------------------------------------------------------------------
 # Omarchy Base Configuration
 # ----------------------------------------------------------------------------
 # Load the base omarchy-zsh configuration (provides completions, keybindings,

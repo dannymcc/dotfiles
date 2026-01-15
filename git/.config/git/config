@@ -51,7 +51,7 @@
 [user]
 	name = Danny McClelland
 	email = danny@dmcc.io
-	signingkey = ~/.ssh/id_ed25519.pub
+	signingkey = /home/danny/.ssh/id_ed25519_github.pub
 [gpg]
 	format = ssh
 
