@@ -135,6 +135,7 @@ fi
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
+alias 0='cd ~/0'
 alias projects='cd ~/projects'
 
 # Editor
