@@ -1,12 +1,12 @@
-# Omarchy Config
+# dotfiles
 
-Personal dotfiles and customizations for [Omarchy](https://omarchy.com).
+Personal dotfiles for Arch Linux. Tested on [Omarchy](https://omarchy.com) but should work on any Arch-based system with Hyprland.
 
 ## Installation
 
 ```bash
-git clone git@github.com:dannymcc/omarchy-config.git ~/omarchy-config
-cd ~/omarchy-config
+git clone git@github.com:dannymcc/dotfiles.git ~/dotfiles
+cd ~/dotfiles
 ./install.sh
 ```
 
@@ -20,7 +20,7 @@ The install script will:
 This repo uses [GNU Stow](https://www.gnu.org/software/stow/) for dotfile management. Each package directory mirrors the target structure relative to `$HOME`:
 
 ```
-omarchy-config/
+dotfiles/
 ├── bash/.bashrc          → ~/.bashrc
 ├── zsh/.zshrc            → ~/.zshrc
 ├── git/.config/git/      → ~/.config/git/
@@ -183,7 +183,7 @@ Terminal file manager with vim-style navigation.
 | `gd` | Downloads |
 | `gp` | Projects |
 | `gc` | .config |
-| `go` | omarchy-config |
+| `go` | dotfiles |
 
 **File operations:**
 
@@ -235,7 +235,7 @@ Fish-like suggestions as you type, sourced from history and completions.
 
 ### Custom Scripts
 
-**scripts/** - Custom Omarchy scripts
+**scripts/** - Custom scripts
 
 | Script | Description |
 |--------|-------------|
