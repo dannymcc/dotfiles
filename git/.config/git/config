@@ -2,7 +2,7 @@
 # Git Configuration
 # https://git-scm.com/docs/git-config
 # ============================================================================
-# Part of Danny's omarchy-config dotfiles
+# Part of Danny's dotfiles
 # https://blog.dmcc.io/dotfiles/
 # ============================================================================
 
@@ -51,7 +51,7 @@
 [user]
 	name = Danny McClelland
 	email = danny@dmcc.io
-	signingkey = /home/danny/.ssh/id_ed25519_github.pub
+	signingkey = /home/danny/.ssh/id_ed25519.pub
 [gpg]
 	format = ssh
 

@@ -2,7 +2,7 @@
 # lf File Manager Configuration
 # https://github.com/gokcehan/lf
 # ============================================================================
-# Part of Danny's omarchy-config dotfiles
+# Part of Danny's dotfiles dotfiles
 # https://blog.dmcc.io/dotfiles/
 # ============================================================================
 
@@ -60,7 +60,7 @@ map gh cd ~
 map gd cd ~/Downloads
 map gp cd ~/projects
 map gc cd ~/.config
-map go cd ~/omarchy-config
+map go cd ~/dotfiles
 
 # Renaming
 map r rename

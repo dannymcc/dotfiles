@@ -31,7 +31,7 @@ alias gpush='git push'
 # Dotfiles sync functions
 function dotpush {
     (
-        builtin cd ~/omarchy-config || exit 1
+        builtin cd ~/dotfiles || exit 1
         if [[ -z $(git status --porcelain) ]]; then
             echo "Dotfiles already in sync"
         else
@@ -44,7 +44,7 @@ function dotpush {
 
 function dotpull {
     (
-        builtin cd ~/omarchy-config || exit 1
+        builtin cd ~/dotfiles || exit 1
         git fetch -q
         local behind=$(git rev-list HEAD..@{u} --count 2>/dev/null)
         if [[ "$behind" -eq 0 ]]; then

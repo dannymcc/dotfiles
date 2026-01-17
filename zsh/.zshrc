@@ -1,7 +1,7 @@
 # ============================================================================
 # Zsh Configuration
 # ============================================================================
-# Part of Danny's omarchy-config dotfiles
+# Part of Danny's dotfiles dotfiles
 # https://blog.dmcc.io/dotfiles/
 # ============================================================================
 
@@ -178,7 +178,7 @@ alias diff='diff --color=auto'
 # Dotfiles sync - push local changes to GitHub
 function dotpush {
     (
-        builtin cd ~/omarchy-config || exit 1
+        builtin cd ~/dotfiles || exit 1
         if [[ -z $(git status --porcelain) ]]; then
             echo "Dotfiles already in sync"
         else
@@ -192,7 +192,7 @@ function dotpush {
 # Dotfiles sync - pull remote changes from GitHub
 function dotpull {
     (
-        builtin cd ~/omarchy-config || exit 1
+        builtin cd ~/dotfiles || exit 1
         git fetch -q
         local behind=$(git rev-list HEAD..@{u} --count 2>/dev/null)
         if [[ "$behind" -eq 0 ]]; then
