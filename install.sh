@@ -3,7 +3,7 @@
 # Omarchy Config Installer
 # Symlinks dotfiles from this repo to their proper locations
 # ============================================================================
-# Part of Danny's dotfiles dotfiles
+# Part of Danny's dotfiles
 # https://blog.dmcc.io/dotfiles/
 # ============================================================================
 
